@@ -8,7 +8,7 @@
 #
 # All rights reserved.
 
-__all__ = ['EditMessageText']
+__all__ = ["EditMessageText"]
 
 import inspect
 import asyncio
@@ -23,17 +23,18 @@ from ... import types
 
 
 class EditMessageText(RawClient):  # pylint: disable=missing-class-docstring
-    async def edit_message_text(self,  # pylint: disable=arguments-differ
-                                chat_id: Union[int, str],
-                                message_id: int,
-                                text: str,
-                                del_in: int = -1,
-                                log: Union[bool, str] = False,
-                                parse_mode: Optional[enums.ParseMode] = None,
-                                entities: List[MessageEntity] = None,
-                                disable_web_page_preview: Optional[bool] = None,
-                                reply_markup: InlineKeyboardMarkup = None
-                                ) -> Union['types.bound.Message', bool]:
+    async def edit_message_text(
+        self,  # pylint: disable=arguments-differ
+        chat_id: Union[int, str],
+        message_id: int,
+        text: str,
+        del_in: int = -1,
+        log: Union[bool, str] = False,
+        parse_mode: Optional[enums.ParseMode] = None,
+        entities: List[MessageEntity] = None,
+        disable_web_page_preview: Optional[bool] = None,
+        reply_markup: InlineKeyboardMarkup = None,
+    ) -> Union["types.bound.Message", bool]:
         """\nExample:
                 message.edit_text("hello")
 
@@ -85,14 +86,16 @@ class EditMessageText(RawClient):  # pylint: disable=missing-class-docstring
         Raises:
             RPCError: In case of a Telegram RPC error.
         """
-        msg = await super().edit_message_text(chat_id=chat_id,
-                                              message_id=message_id,
-                                              text=text,
-                                              parse_mode=parse_mode,
-                                              entities=entities,
-                                              disable_web_page_preview=disable_web_page_preview,
-                                              reply_markup=reply_markup)
-        module = inspect.currentframe().f_back.f_globals['__name__']
+        msg = await super().edit_message_text(
+            chat_id=chat_id,
+            message_id=message_id,
+            text=text,
+            parse_mode=parse_mode,
+            entities=entities,
+            disable_web_page_preview=disable_web_page_preview,
+            reply_markup=reply_markup,
+        )
+        module = inspect.currentframe().f_back.f_globals["__name__"]
         if log:
             await self._channel.fwd_msg(msg, module if isinstance(log, bool) else log)
         del_in = del_in or config.Dynamic.MSG_DELETE_TIMEOUT

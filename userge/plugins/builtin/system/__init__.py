@@ -11,6 +11,7 @@
 
 from os import environ, getpid, kill
 from typing import Set, Optional
+
 try:
     from signal import CTRL_C_EVENT as SIGTERM
 except ImportError:
@@ -54,6 +55,6 @@ async def del_env(key: str) -> Optional[str]:
 
 def shutdown() -> None:
     if config.HEROKU_APP:
-        config.HEROKU_APP.process_formation()['worker'].scale(0)
+        config.HEROKU_APP.process_formation()["worker"].scale(0)
 
     kill(getpid(), SIGTERM)

@@ -8,7 +8,7 @@
 #
 # All rights reserved.
 
-__all__ = ['Conversation']
+__all__ = ["Conversation"]
 
 import time
 import asyncio
@@ -27,8 +27,10 @@ from ... import client as _client  # pylint: disable=unused-import
 
 _LOG = logging.getLogger(__name__)
 
-_CL_TYPE = Union['_client.Userge', '_client.UsergeBot']
-_CONV_DICT: Dict[Tuple[int, _CL_TYPE], Union[asyncio.Queue, Tuple[int, asyncio.Queue]]] = {}
+_CL_TYPE = Union["_client.Userge", "_client.UsergeBot"]
+_CONV_DICT: Dict[
+    Tuple[int, _CL_TYPE], Union[asyncio.Queue, Tuple[int, asyncio.Queue]]
+] = {}
 
 
 class _MsgLimitReached(Exception):
@@ -36,13 +38,16 @@ class _MsgLimitReached(Exception):
 
 
 class Conversation:
-    """ Conversation class for userge """
-    def __init__(self,
-                 client: _CL_TYPE,
-                 chat: Union[str, int],
-                 user: Union[str, int],
-                 timeout: Union[int, float],
-                 limit: int) -> None:
+    """Conversation class for userge"""
+
+    def __init__(
+        self,
+        client: _CL_TYPE,
+        chat: Union[str, int],
+        user: Union[str, int],
+        timeout: Union[int, float],
+        limit: int,
+    ) -> None:
         self._client = client
         self._chat = chat
         self._user = user
@@ -54,12 +59,16 @@ class Conversation:
 
     @property
     def chat_id(self) -> int:
-        """ Returns chat_id """
+        """Returns chat_id"""
         return self._chat_id
 
-    async def get_response(self, *, timeout: Union[int, float] = 0,
-                           mark_read: bool = False,
-                           filters: Filter = None) -> RawMessage:
+    async def get_response(
+        self,
+        *,
+        timeout: Union[int, float] = 0,
+        mark_read: bool = False,
+        filters: Filter = None,
+    ) -> RawMessage:
         """\nGets the next message that responds to a previous one.
 
         Parameters:
@@ -109,11 +118,14 @@ class Conversation:
             On success, True is returned.
         """
         return bool(
-            await self._client.send_read_acknowledge(chat_id=self._chat_id, message=message))
+            await self._client.send_read_acknowledge(
+                chat_id=self._chat_id, message=message
+            )
+        )
 
-    async def send_message(self,
-                           text: str,
-                           parse_mode: Optional[enums.ParseMode] = None) -> RawMessage:
+    async def send_message(
+        self, text: str, parse_mode: Optional[enums.ParseMode] = None
+    ) -> RawMessage:
         """\nSend text messages to the conversation.
 
         Parameters:
@@ -125,8 +137,9 @@ class Conversation:
         Returns:
             :obj:`Message`: On success, the sent text message is returned.
         """
-        return await self._client.send_message(chat_id=self._chat_id,
-                                               text=text, parse_mode=parse_mode)
+        return await self._client.send_message(
+            chat_id=self._chat_id, text=text, parse_mode=parse_mode
+        )
 
     async def send_document(self, document: str) -> Optional[RawMessage]:
         """\nSend documents to the conversation.
@@ -147,7 +160,9 @@ class Conversation:
             is deliberately stopped with
             :meth:`~Client.stop_transmission`, None is returned.
         """
-        return await self._client.send_document(chat_id=self._chat_id, document=document)
+        return await self._client.send_document(
+            chat_id=self._chat_id, document=document
+        )
 
     async def forward_message(self, message: RawMessage) -> RawMessage:
         """\nForward message to the conversation.
@@ -159,13 +174,14 @@ class Conversation:
         Returns:
             On success, forwarded message is returned.
         """
-        return await self._client.forward_messages(chat_id=self._chat_id,
-                                                   from_chat_id=message.chat.id,
-                                                   message_ids=message.id)
+        return await self._client.forward_messages(
+            chat_id=self._chat_id, from_chat_id=message.chat.id, message_ids=message.id
+        )
 
     @staticmethod
     def init(client: _CL_TYPE) -> None:
-        """ initialize the conversation method """
+        """initialize the conversation method"""
+
         async def _on_conversation(_, msg: RawMessage) -> None:
             data = _CONV_DICT[(msg.chat.id, client)]
             if isinstance(data, asyncio.Queue):
@@ -173,28 +189,38 @@ class Conversation:
             elif msg.from_user and msg.from_user.id == data[0]:
                 data[1].put_nowait(msg)
             msg.continue_propagation()
+
         client.add_handler(
             MessageHandler(
                 _on_conversation,
                 _filters.create(
-                    lambda _, __, query: _CONV_DICT and query.chat and (
-                        query.chat.id, client
-                    ) in _CONV_DICT, "conversation"
-                )
+                    lambda _, __, query: _CONV_DICT
+                    and query.chat
+                    and (query.chat.id, client) in _CONV_DICT,
+                    "conversation",
+                ),
             )
         )
 
-    async def __aenter__(self) -> 'Conversation':
-        self._chat_id = int(self._chat) if isinstance(self._chat, int) else \
-            (await self._client.get_chat(self._chat)).id
+    async def __aenter__(self) -> "Conversation":
+        self._chat_id = (
+            int(self._chat)
+            if isinstance(self._chat, int)
+            else (await self._client.get_chat(self._chat)).id
+        )
         pack = (self._chat_id, self._client)
         if pack in _CONV_DICT:
-            error = f"already started conversation {self._client} with {self._chat_id} !"
+            error = (
+                f"already started conversation {self._client} with {self._chat_id} !"
+            )
             _LOG.error(error)
             raise StopConversation(error)
         if self._user:
-            self._user_id = int(self._user) if isinstance(self._user, int) else \
-                (await self._client.get_users(self._user)).id
+            self._user_id = (
+                int(self._user)
+                if isinstance(self._user, int)
+                else (await self._client.get_users(self._user)).id
+            )
             _CONV_DICT[pack] = (self._user_id, asyncio.Queue(self._limit))
         else:
             _CONV_DICT[pack] = asyncio.Queue(self._limit)
@@ -207,13 +233,17 @@ class Conversation:
             queue = queue[1]
         queue.put_nowait(None)
         del _CONV_DICT[pack]
-        error = ''
+        error = ""
         if isinstance(exc_val, asyncio.exceptions.TimeoutError):
-            error = (f"ended conversation {self._client} with {self._chat_id}, "
-                     "timeout reached!")
+            error = (
+                f"ended conversation {self._client} with {self._chat_id}, "
+                "timeout reached!"
+            )
         if isinstance(exc_val, _MsgLimitReached):
-            error = (f"ended conversation {self._client} with {self._chat_id}, "
-                     "message limit reached!")
+            error = (
+                f"ended conversation {self._client} with {self._chat_id}, "
+                "message limit reached!"
+            )
         if error:
             _LOG.error(error)
             raise StopConversation(error)

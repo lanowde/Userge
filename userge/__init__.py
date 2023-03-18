@@ -10,7 +10,6 @@
 
 from userge.logger import logging  # noqa
 from userge import config  # noqa
-from userge.core import (  # noqa
-    Userge, filters, Message, get_collection, pool)
+from userge.core import Userge, filters, Message, get_collection, pool  # noqa
 
 userge = Userge()  # userge is the client name

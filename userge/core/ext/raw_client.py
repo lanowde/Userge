@@ -8,7 +8,7 @@
 #
 # All rights reserved.
 
-__all__ = ['RawClient']
+__all__ = ["RawClient"]
 
 import asyncio
 from math import floor
@@ -28,47 +28,66 @@ _LOG_STR = "FLOOD CONTROL : sleeping %.2fs in %d"
 
 
 class RawClient(Client):
-    """ userge raw client """
+    """userge raw client"""
+
     DUAL_MODE = False
     USER_ID = 0
     BOT_ID = 0
     LAST_OUTGOING_TIME = time()
-    REQ_LOGS: Dict[int, 'ChatReq'] = {}
+    REQ_LOGS: Dict[int, "ChatReq"] = {}
     REQ_LOCK = asyncio.Lock()
 
-    def __init__(self, bot: Optional['userge.core.client.UsergeBot'] = None, **kwargs) -> None:
+    def __init__(
+        self, bot: Optional["userge.core.client.UsergeBot"] = None, **kwargs
+    ) -> None:
         self._bot = bot
         super().__init__(**kwargs)
         self._channel = userge.core.types.new.ChannelLogger(self, "CORE")
         userge.core.types.new.Conversation.init(self)
 
-    async def invoke(self, query: TLObject, retries: int = Session.MAX_RETRIES,
-                     timeout: float = Session.WAIT_TIMEOUT, sleep_threshold: float = None):
+    async def invoke(
+        self,
+        query: TLObject,
+        retries: int = Session.MAX_RETRIES,
+        timeout: float = Session.WAIT_TIMEOUT,
+        sleep_threshold: float = None,
+    ):
         if isinstance(query, funcs.account.DeleteAccount) or query.ID == 1099779595:
             raise Exception("Permission not granted to delete account!")
         key = 0
-        if isinstance(query, (funcs.messages.SendMessage,
-                              funcs.messages.SendMedia,
-                              funcs.messages.SendMultiMedia,
-                              funcs.messages.EditMessage,
-                              funcs.messages.ForwardMessages)):
+        if isinstance(
+            query,
+            (
+                funcs.messages.SendMessage,
+                funcs.messages.SendMedia,
+                funcs.messages.SendMultiMedia,
+                funcs.messages.EditMessage,
+                funcs.messages.ForwardMessages,
+            ),
+        ):
             if isinstance(query, funcs.messages.ForwardMessages):
                 tmp = query.to_peer
             else:
                 tmp = query.peer
             if isinstance(query, funcs.messages.SendMedia) and isinstance(
-                    query.media, (types.InputMediaUploadedDocument,
-                                  types.InputMediaUploadedPhoto)):
+                query.media,
+                (types.InputMediaUploadedDocument, types.InputMediaUploadedPhoto),
+            ):
                 tmp = None
             if tmp:
-                if isinstance(tmp, (types.InputPeerChannel, types.InputPeerChannelFromMessage)):
+                if isinstance(
+                    tmp, (types.InputPeerChannel, types.InputPeerChannelFromMessage)
+                ):
                     key = int(tmp.channel_id)
                 elif isinstance(tmp, types.InputPeerChat):
                     key = int(tmp.chat_id)
-                elif isinstance(tmp, (types.InputPeerUser, types.InputPeerUserFromMessage)):
+                elif isinstance(
+                    tmp, (types.InputPeerUser, types.InputPeerUserFromMessage)
+                ):
                     key = int(tmp.user_id)
         elif isinstance(query, funcs.channels.DeleteMessages) and isinstance(
-                query.channel, (types.InputChannel, types.InputChannelFromMessage)):
+            query.channel, (types.InputChannel, types.InputChannelFromMessage)
+        ):
             key = int(query.channel.channel_id)
         if key:
             async with self.REQ_LOCK:

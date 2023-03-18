@@ -32,4 +32,4 @@ async def get_full_version() -> str:
     core = await api.get_core()
     ver = f"{get_version()}-build.{core.count}"
 
-    return ver + '@' + core.branch
+    return ver + "@" + core.branch

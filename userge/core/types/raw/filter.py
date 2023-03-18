@@ -8,7 +8,7 @@
 #
 # All rights reserved.
 
-__all__ = ['Filter']
+__all__ = ["Filter"]
 
 from typing import List, Dict, Callable, Any, Optional, Union
 
@@ -24,25 +24,27 @@ _LOG = logging.getLogger(__name__)
 
 
 class Filter:
-    def __init__(self,
-                 filters: RawFilter,
-                 client: '_client.Userge',
-                 group: int,
-                 scope: List[enums.ChatType],
-                 only_admins: bool,
-                 allow_via_bot: bool,
-                 check_client: bool,
-                 check_downpath: bool,
-                 propagate: Optional[bool],
-                 check_perm: bool,
-                 check_change_info_perm: bool,
-                 check_edit_perm: bool,
-                 check_delete_perm: bool,
-                 check_restrict_perm: bool,
-                 check_promote_perm: bool,
-                 check_invite_perm: bool,
-                 check_pin_perm: bool,
-                 name: str = '') -> None:
+    def __init__(
+        self,
+        filters: RawFilter,
+        client: "_client.Userge",
+        group: int,
+        scope: List[enums.ChatType],
+        only_admins: bool,
+        allow_via_bot: bool,
+        check_client: bool,
+        check_downpath: bool,
+        propagate: Optional[bool],
+        check_perm: bool,
+        check_change_info_perm: bool,
+        check_edit_perm: bool,
+        check_delete_perm: bool,
+        check_restrict_perm: bool,
+        check_promote_perm: bool,
+        check_invite_perm: bool,
+        check_pin_perm: bool,
+        name: str = "",
+    ) -> None:
         self.filters = filters
         self.name = name
         self.scope = scope
@@ -68,19 +70,22 @@ class Filter:
         self._handler: Optional[Handler] = None
 
     @classmethod
-    def parse(cls, filters: RawFilter, **kwargs: Union['_client.Userge', int, bool]) -> 'Filter':
-        """ parse filter """
+    def parse(
+        cls, filters: RawFilter, **kwargs: Union["_client.Userge", int, bool]
+    ) -> "Filter":
+        """parse filter"""
         # pylint: disable=protected-access
         return cls(**Filter._parse(filters=filters, **kwargs))
 
     @staticmethod
-    def _parse(allow_private: bool,
-               allow_bots: bool,
-               allow_groups: bool,
-               allow_channels: bool,
-               **kwargs: Union[RawFilter, '_client.Userge', int, bool]
-               ) -> Dict[str, Union[RawFilter, '_client.Userge', int, bool]]:
-        kwargs['check_client'] = kwargs['allow_via_bot'] and kwargs['check_client']
+    def _parse(
+        allow_private: bool,
+        allow_bots: bool,
+        allow_groups: bool,
+        allow_channels: bool,
+        **kwargs: Union[RawFilter, "_client.Userge", int, bool],
+    ) -> Dict[str, Union[RawFilter, "_client.Userge", int, bool]]:
+        kwargs["check_client"] = kwargs["allow_via_bot"] and kwargs["check_client"]
 
         scope = []
         if allow_bots:
@@ -91,12 +96,17 @@ class Filter:
             scope.append(enums.ChatType.CHANNEL)
         if allow_groups:
             scope += [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]
-        kwargs['scope'] = scope
+        kwargs["scope"] = scope
 
-        kwargs['check_perm'] = kwargs['check_change_info_perm'] \
-            or kwargs['check_edit_perm'] or kwargs['check_delete_perm'] \
-            or kwargs['check_restrict_perm'] or kwargs['check_promote_perm'] \
-            or kwargs['check_invite_perm'] or kwargs['check_pin_perm']
+        kwargs["check_perm"] = (
+            kwargs["check_change_info_perm"]
+            or kwargs["check_edit_perm"]
+            or kwargs["check_delete_perm"]
+            or kwargs["check_restrict_perm"]
+            or kwargs["check_promote_perm"]
+            or kwargs["check_invite_perm"]
+            or kwargs["check_pin_perm"]
+        )
 
         return kwargs
 
@@ -107,21 +117,23 @@ class Filter:
     def loaded(self) -> bool:
         return self._loaded
 
-    def update(self, func: Callable[[Any], Any], template: Callable[[Any], Any]) -> None:
-        """ update filter """
+    def update(
+        self, func: Callable[[Any], Any], template: Callable[[Any], Any]
+    ) -> None:
+        """update filter"""
         self.doc = (func.__doc__ or "undefined").strip()
-        self.plugin, _ = func.__module__.split('.')[-2:]
+        self.plugin, _ = func.__module__.split(".")[-2:]
 
         if not self.name:
-            self.name = '.'.join((self.plugin, func.__name__))
+            self.name = ".".join((self.plugin, func.__name__))
 
         self._func = func
         self._handler = MessageHandler(template, self.filters)
 
     def load(self) -> str:
-        """ load the filter """
+        """load the filter"""
         if self._loaded or (self._client.is_bot and not self.allow_via_bot):
-            return ''
+            return ""
 
         self._client.add_handler(self._handler, self._group)
         # pylint: disable=protected-access
@@ -132,9 +144,9 @@ class Filter:
         return self.name
 
     def unload(self) -> str:
-        """ unload the filter """
+        """unload the filter"""
         if not self._loaded:
-            return ''
+            return ""
 
         self._client.remove_handler(self._handler, self._group)
         # pylint: disable=protected-access

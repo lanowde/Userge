@@ -11,18 +11,24 @@
 from userge import userge, Message, config
 
 
-@userge.on_cmd("status", about={
-    'header': "list plugins, commands, filters status",
-    'flags': {
-        '-p': "plugin",
-        '-c': "command",
-        '-f': "filter"},
-    'usage': "{tr}status [flags] [name]",
-    'examples': [
-        "{tr}status", "{tr}status -p",
-        "{tr}status -p gdrive", "{tr}status -c {tr}gls"]}, del_pre=True, allow_channels=False)
+@userge.on_cmd(
+    "status",
+    about={
+        "header": "list plugins, commands, filters status",
+        "flags": {"-p": "plugin", "-c": "command", "-f": "filter"},
+        "usage": "{tr}status [flags] [name]",
+        "examples": [
+            "{tr}status",
+            "{tr}status -p",
+            "{tr}status -p gdrive",
+            "{tr}status -c {tr}gls",
+        ],
+    },
+    del_pre=True,
+    allow_channels=False,
+)
 async def status(message: Message) -> None:
-    """ view current status """
+    """view current status"""
     name_ = message.filtered_input_str
     type_ = list(message.flags)
     if not type_:
@@ -40,7 +46,7 @@ async def status(message: Message) -> None:
         ✅ **Loaded** : `{len(userge.manager.loaded_filters)}`
         ❎ **Unloaded** : `{len(userge.manager.unloaded_filters)}`
 """
-    elif 'p' in type_:
+    elif "p" in type_:
         if name_:
             if name_ in userge.manager.plugins:
                 plg = userge.manager.plugins[name_]
@@ -72,7 +78,7 @@ async def status(message: Message) -> None:
 ❎ **Unloaded** : `{len(userge.manager.unloaded_plugins)}`
         `{'`,    `'.join((cmd.name for cmd in userge.manager.unloaded_plugins))}`
 """
-    elif 'c' in type_:
+    elif "c" in type_:
         if name_:
             if not name_.startswith(config.CMD_TRIGGER):
                 n_name_ = config.CMD_TRIGGER + name_
@@ -98,7 +104,7 @@ async def status(message: Message) -> None:
 ❎ **Unloaded** : `{len(userge.manager.unloaded_commands)}`
         `{'`,    `'.join((cmd.name for cmd in userge.manager.unloaded_commands))}`
 """
-    elif 'f' in type_:
+    elif "f" in type_:
         if name_:
             if name_ in userge.manager.filters:
                 flt = userge.manager.filters[name_]
@@ -123,27 +129,29 @@ async def status(message: Message) -> None:
     else:
         await message.err("invalid input flag!")
         return
-    await message.edit(out_str.replace("        ``\n", ''), del_in=0)
+    await message.edit(out_str.replace("        ``\n", ""), del_in=0)
 
 
-@userge.on_cmd('load', about={
-    'header': "load plugins, commands, filters",
-    'flags': {
-        '-p': "plugin",
-        '-c': "command",
-        '-f': "filter"},
-    'usage': "{tr}load [flags] [name | names]",
-    'examples': [
-        "{tr}load -p gdrive", "{tr}load -c gls gup"]}, del_pre=True, allow_channels=False)
+@userge.on_cmd(
+    "load",
+    about={
+        "header": "load plugins, commands, filters",
+        "flags": {"-p": "plugin", "-c": "command", "-f": "filter"},
+        "usage": "{tr}load [flags] [name | names]",
+        "examples": ["{tr}load -p gdrive", "{tr}load -c gls gup"],
+    },
+    del_pre=True,
+    allow_channels=False,
+)
 async def load(message: Message) -> None:
-    """ load plugins, commands, filters """
+    """load plugins, commands, filters"""
     if not message.filtered_input_str:
         await message.err("name required!")
         return
     await message.edit("`Loading...`")
-    names_ = message.filtered_input_str.split(' ')
+    names_ = message.filtered_input_str.split(" ")
     type_ = list(message.flags)
-    if 'p' in type_:
+    if "p" in type_:
         found = set(names_).intersection(set(userge.manager.plugins))
         if found:
             out = await userge.manager.load_plugins(list(found))
@@ -156,7 +164,7 @@ async def load(message: Message) -> None:
         else:
             await message.err(f"plugins : {', '.join(names_)} not found!")
             return
-    elif 'c' in type_:
+    elif "c" in type_:
         for t_name in names_:
             if not t_name.startswith(config.CMD_TRIGGER):
                 names_.append(config.CMD_TRIGGER + t_name)
@@ -171,7 +179,7 @@ async def load(message: Message) -> None:
         else:
             await message.err(f"commands : {', '.join(names_)} not found!")
             return
-    elif 'f' in type_:
+    elif "f" in type_:
         found = set(names_).intersection(set(userge.manager.filters))
         if found:
             out = await userge.manager.load_filters(list(found))
@@ -189,17 +197,19 @@ async def load(message: Message) -> None:
     await message.edit(out_str, del_in=0, log=True)
 
 
-@userge.on_cmd('unload', about={
-    'header': "unload plugins, commands, filters",
-    'flags': {
-        '-p': "plugin",
-        '-c': "command",
-        '-f': "filter"},
-    'usage': "{tr}unload [flags] [name | names]",
-    'examples': [
-        "{tr}unload -p gdrive", "{tr}unload -c gls gup"]}, del_pre=True, allow_channels=False)
+@userge.on_cmd(
+    "unload",
+    about={
+        "header": "unload plugins, commands, filters",
+        "flags": {"-p": "plugin", "-c": "command", "-f": "filter"},
+        "usage": "{tr}unload [flags] [name | names]",
+        "examples": ["{tr}unload -p gdrive", "{tr}unload -c gls gup"],
+    },
+    del_pre=True,
+    allow_channels=False,
+)
 async def unload(message: Message) -> None:
-    """ unload plugins, commands, filters """
+    """unload plugins, commands, filters"""
     if not message.flags:
         await message.err("flag required!")
         return
@@ -207,9 +217,9 @@ async def unload(message: Message) -> None:
         await message.err("name required!")
         return
     await message.edit("`UnLoading...`")
-    names_ = message.filtered_input_str.split(' ')
+    names_ = message.filtered_input_str.split(" ")
     type_ = list(message.flags)
-    if 'p' in type_ and names_:
+    if "p" in type_ and names_:
         found = set(names_).intersection(set(userge.manager.plugins))
         if found:
             out = await userge.manager.unload_plugins(list(found))
@@ -222,7 +232,7 @@ async def unload(message: Message) -> None:
         else:
             await message.err(f"plugins : {', '.join(names_)} not found!")
             return
-    elif 'c' in type_ and names_:
+    elif "c" in type_ and names_:
         for t_name in names_:
             if not t_name.startswith(config.CMD_TRIGGER):
                 names_.append(config.CMD_TRIGGER + t_name)
@@ -237,7 +247,7 @@ async def unload(message: Message) -> None:
         else:
             await message.err(f"commands : {', '.join(names_)} not found!")
             return
-    elif 'f' in type_ and names_:
+    elif "f" in type_ and names_:
         found = set(names_).intersection(set(userge.manager.filters))
         if found:
             out = await userge.manager.unload_filters(list(found))
@@ -255,19 +265,25 @@ async def unload(message: Message) -> None:
     await message.edit(out_str, del_in=0, log=True)
 
 
-@userge.on_cmd('reload', about={'header': "Reload all plugins"}, allow_channels=False)
+@userge.on_cmd("reload", about={"header": "Reload all plugins"}, allow_channels=False)
 async def reload_(message: Message) -> None:
-    """ Reload all plugins """
+    """Reload all plugins"""
     await message.edit("`Reloading All Plugins`")
     await message.edit(
-        f"`Reloaded {await userge.reload_plugins()} Plugins`", del_in=3, log=True)
+        f"`Reloaded {await userge.reload_plugins()} Plugins`", del_in=3, log=True
+    )
 
 
-@userge.on_cmd('clear_unloaded', about={'header': "clear saved unloaded data in DB"},
-               allow_channels=False)
+@userge.on_cmd(
+    "clear_unloaded",
+    about={"header": "clear saved unloaded data in DB"},
+    allow_channels=False,
+)
 async def clear_(message: Message) -> None:
-    """ clear all save filters in DB """
+    """clear all save filters in DB"""
     await message.edit("`Clearing Unloaded Data...`")
     await message.edit(
         f"**Cleared Unloaded** : `{await userge.manager.clear_unloaded()}`",
-        del_in=3, log=True)
+        del_in=3,
+        log=True,
+    )

@@ -8,7 +8,7 @@
 #
 # All rights reserved.
 
-__all__ = ['SendMessage']
+__all__ = ["SendMessage"]
 
 import asyncio
 import inspect
@@ -16,8 +16,12 @@ from datetime import datetime
 from typing import Optional, Union, List
 
 from pyrogram.types import (
-    InlineKeyboardMarkup, ReplyKeyboardMarkup,
-    ReplyKeyboardRemove, ForceReply, MessageEntity)
+    InlineKeyboardMarkup,
+    ReplyKeyboardMarkup,
+    ReplyKeyboardRemove,
+    ForceReply,
+    MessageEntity,
+)
 from pyrogram import enums
 
 from userge import config
@@ -26,23 +30,23 @@ from ...ext import RawClient
 
 
 class SendMessage(RawClient):  # pylint: disable=missing-class-docstring
-    async def send_message(self,  # pylint: disable=arguments-differ
-                           chat_id: Union[int, str],
-                           text: str,
-                           del_in: int = -1,
-                           log: Union[bool, str] = False,
-                           parse_mode: Optional[enums.ParseMode] = None,
-                           entities: List[MessageEntity] = None,
-                           disable_web_page_preview: Optional[bool] = None,
-                           disable_notification: Optional[bool] = None,
-                           reply_to_message_id: Optional[int] = None,
-                           schedule_date: Optional[datetime] = None,
-                           protect_content: Optional[bool] = None,
-                           reply_markup: Union[InlineKeyboardMarkup,
-                                               ReplyKeyboardMarkup,
-                                               ReplyKeyboardRemove,
-                                               ForceReply] = None
-                           ) -> Union['types.bound.Message', bool]:
+    async def send_message(
+        self,  # pylint: disable=arguments-differ
+        chat_id: Union[int, str],
+        text: str,
+        del_in: int = -1,
+        log: Union[bool, str] = False,
+        parse_mode: Optional[enums.ParseMode] = None,
+        entities: List[MessageEntity] = None,
+        disable_web_page_preview: Optional[bool] = None,
+        disable_notification: Optional[bool] = None,
+        reply_to_message_id: Optional[int] = None,
+        schedule_date: Optional[datetime] = None,
+        protect_content: Optional[bool] = None,
+        reply_markup: Union[
+            InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply
+        ] = None,
+    ) -> Union["types.bound.Message", bool]:
         """\nSend text messages.
 
         Example:
@@ -102,17 +106,19 @@ class SendMessage(RawClient):  # pylint: disable=missing-class-docstring
         Returns:
             :obj:`Message`: On success, the sent text message or True is returned.
         """
-        msg = await super().send_message(chat_id=chat_id,
-                                         text=text,
-                                         parse_mode=parse_mode,
-                                         entities=entities,
-                                         disable_web_page_preview=disable_web_page_preview,
-                                         disable_notification=disable_notification,
-                                         reply_to_message_id=reply_to_message_id,
-                                         schedule_date=schedule_date,
-                                         protect_content=protect_content,
-                                         reply_markup=reply_markup)
-        module = inspect.currentframe().f_back.f_globals['__name__']
+        msg = await super().send_message(
+            chat_id=chat_id,
+            text=text,
+            parse_mode=parse_mode,
+            entities=entities,
+            disable_web_page_preview=disable_web_page_preview,
+            disable_notification=disable_notification,
+            reply_to_message_id=reply_to_message_id,
+            schedule_date=schedule_date,
+            protect_content=protect_content,
+            reply_markup=reply_markup,
+        )
+        module = inspect.currentframe().f_back.f_globals["__name__"]
         if log:
             await self._channel.fwd_msg(msg, module if isinstance(log, bool) else log)
         del_in = del_in or config.Dynamic.MSG_DELETE_TIMEOUT

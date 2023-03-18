@@ -8,7 +8,7 @@
 #
 # All rights reserved.
 
-__all__ = ['Conversation']
+__all__ = ["Conversation"]
 
 from typing import Union
 
@@ -16,11 +16,14 @@ from ... import types
 
 
 class Conversation:  # pylint: disable=missing-class-docstring
-    def conversation(self,
-                     chat_id: Union[str, int],
-                     *, user_id: Union[str, int] = 0,
-                     timeout: Union[int, float] = 10,
-                     limit: int = 10) -> 'types.new.Conversation':
+    def conversation(
+        self,
+        chat_id: Union[str, int],
+        *,
+        user_id: Union[str, int] = 0,
+        timeout: Union[int, float] = 10,
+        limit: int = 10
+    ) -> "types.new.Conversation":
         """\nThis returns new conversation object.
 
         Parameters:

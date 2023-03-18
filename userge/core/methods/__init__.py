@@ -8,7 +8,7 @@
 #
 # All rights reserved.
 
-__all__ = ['Methods']
+__all__ = ["Methods"]
 
 from .chats import Chats
 from .decorators import Decorators
@@ -18,4 +18,4 @@ from .utils import Utils
 
 
 class Methods(Chats, Decorators, Messages, Users, Utils):
-    """ userge.methods """
+    """userge.methods"""

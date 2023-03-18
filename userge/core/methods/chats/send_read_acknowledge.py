@@ -8,7 +8,7 @@
 #
 # All rights reserved.
 
-__all__ = ['SendReadAcknowledge']
+__all__ = ["SendReadAcknowledge"]
 
 from typing import List, Optional, Union
 
@@ -18,12 +18,14 @@ from ...ext import RawClient, RawMessage
 
 
 class SendReadAcknowledge(RawClient):  # pylint: disable=missing-class-docstring
-    async def send_read_acknowledge(self,
-                                    chat_id: Union[int, str],
-                                    message: Union[List[RawMessage],
-                                                   Optional[RawMessage]] = None,
-                                    *, max_id: Optional[int] = None,
-                                    clear_mentions: bool = False) -> bool:
+    async def send_read_acknowledge(
+        self,
+        chat_id: Union[int, str],
+        message: Union[List[RawMessage], Optional[RawMessage]] = None,
+        *,
+        max_id: Optional[int] = None,
+        clear_mentions: bool = False
+    ) -> bool:
         """\nMarks messages as read and optionally clears mentions.
 
         Parameters:
@@ -61,8 +63,8 @@ class SendReadAcknowledge(RawClient):  # pylint: disable=missing-class-docstring
                 max_id = 0
         if clear_mentions:
             await self.invoke(
-                functions.messages.ReadMentions(
-                    peer=await self.resolve_peer(chat_id)))
+                functions.messages.ReadMentions(peer=await self.resolve_peer(chat_id))
+            )
             if max_id is None:
                 return True
         if max_id is not None:

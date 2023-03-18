@@ -8,7 +8,7 @@
 #
 # All rights reserved.
 
-__all__ = ['Plugin']
+__all__ = ["Plugin"]
 
 import asyncio
 from typing import Union, List, Optional, Callable, Awaitable, Any
@@ -24,14 +24,15 @@ _UNLOADED = 1
 
 
 class Plugin:
-    """ plugin class """
-    def __init__(self, client: '_client.Userge', cat: str, name: str) -> None:
+    """plugin class"""
+
+    def __init__(self, client: "_client.Userge", cat: str, name: str) -> None:
         self._client = client
         self.cat = cat
         self.name = name
         self.doc: str = "undefined"
-        self.commands: List['command.Command'] = []
-        self.filters: List['_filter.Filter'] = []
+        self.commands: List["command.Command"] = []
+        self.filters: List["_filter.Filter"] = []
 
         self._state = _UNLOADED
 
@@ -47,31 +48,31 @@ class Plugin:
 
     @property
     def loaded(self) -> bool:
-        """ returns load status """
+        """returns load status"""
         return any((flt.loaded for flt in self.commands + self.filters))
 
     @property
-    def loaded_commands(self) -> List['command.Command']:
-        """ returns all loaded commands """
+    def loaded_commands(self) -> List["command.Command"]:
+        """returns all loaded commands"""
         return [cmd for cmd in self.commands if cmd.loaded]
 
     @property
-    def unloaded_commands(self) -> List['command.Command']:
-        """ returns all unloaded commands """
+    def unloaded_commands(self) -> List["command.Command"]:
+        """returns all unloaded commands"""
         return [cmd for cmd in self.commands if not cmd.loaded]
 
     @property
-    def loaded_filters(self) -> List['_filter.Filter']:
-        """ returns all loaded filters """
+    def loaded_filters(self) -> List["_filter.Filter"]:
+        """returns all loaded filters"""
         return [flt for flt in self.filters if flt.loaded]
 
     @property
-    def unloaded_filters(self) -> List['_filter.Filter']:
-        """ returns all unloaded filters """
+    def unloaded_filters(self) -> List["_filter.Filter"]:
+        """returns all unloaded filters"""
         return [flt for flt in self.filters if not flt.loaded]
 
-    def add(self, obj: Union['command.Command', '_filter.Filter']) -> None:
-        """ add command or filter to plugin """
+    def add(self, obj: Union["command.Command", "_filter.Filter"]) -> None:
+        """add command or filter to plugin"""
         if isinstance(obj, command.Command):
             type_ = self.commands
         else:
@@ -85,7 +86,7 @@ class Plugin:
         type_.append(obj)
 
     def get_commands(self) -> List[str]:
-        """ returns all sorted command names in the plugin """
+        """returns all sorted command names in the plugin"""
         return sorted((cmd.name for cmd in self.loaded_commands))
 
     async def _start(self) -> None:
@@ -148,19 +149,19 @@ class Plugin:
         self.clear()
 
     async def load(self) -> List[str]:
-        """ load all commands in the plugin """
+        """load all commands in the plugin"""
         if self._state == _LOADED:
             return []
 
         await self._start()
-        return _do_it(self, 'load')
+        return _do_it(self, "load")
 
     async def unload(self) -> List[str]:
-        """ unload all commands in the plugin """
+        """unload all commands in the plugin"""
         if self._state == _UNLOADED:
             return []
 
-        out = _do_it(self, 'unload')
+        out = _do_it(self, "unload")
         await self._stop()
 
         return out

@@ -8,7 +8,7 @@
 #
 # All rights reserved.
 
-__all__ = ['Userge']
+__all__ = ["Userge"]
 
 import asyncio
 import functools
@@ -95,17 +95,15 @@ _USERGE_STATUS = get_collection("USERGE_STATUS")
 
 async def _set_running(is_running: bool) -> None:
     await _USERGE_STATUS.update_one(
-        {'_id': 'USERGE_STATUS'},
-        {"$set": {'is_running': is_running}},
-        upsert=True
+        {"_id": "USERGE_STATUS"}, {"$set": {"is_running": is_running}}, upsert=True
     )
 
 
 async def _is_running() -> bool:
     if config.ASSERT_SINGLE_INSTANCE:
-        data = await _USERGE_STATUS.find_one({'_id': 'USERGE_STATUS'})
+        data = await _USERGE_STATUS.find_one({"_id": "USERGE_STATUS"})
         if data:
-            return bool(data['is_running'])
+            return bool(data["is_running"])
 
     return False
 
@@ -116,8 +114,10 @@ async def _wait_for_instance() -> None:
     max_ = 1800  # 30 min
 
     while await _is_running():
-        _LOG.info("Waiting for the Termination of "
-                  f"previous Userge instance ... [{timeout} sec]")
+        _LOG.info(
+            "Waiting for the Termination of "
+            f"previous Userge instance ... [{timeout} sec]"
+        )
         time.sleep(timeout)
 
         counter += timeout
@@ -133,7 +133,7 @@ class _AbstractUserge(Methods):
 
     @property
     def id(self) -> int:
-        """ returns client id """
+        """returns client id"""
         if self.is_bot:
             return RawClient.BOT_ID
 
@@ -141,15 +141,15 @@ class _AbstractUserge(Methods):
 
     @property
     def is_bot(self) -> bool:
-        """ returns client is bot or not """
+        """returns client is bot or not"""
         if self._bot is not None:
-            return hasattr(self, 'ubot')
+            return hasattr(self, "ubot")
 
         return bool(config.BOT_TOKEN)
 
     @property
     def uptime(self) -> str:
-        """ returns userge uptime """
+        """returns userge uptime"""
         return time_formatter(time.time() - _START_TIME)
 
     async def _load_plugins(self) -> None:
@@ -180,11 +180,13 @@ class _AbstractUserge(Methods):
                 _MODULES.remove(mdl)
 
         await self.manager.init()
-        _LOG.info(f"Imported ({len(_MODULES)}) Plugins => "
-                  + str(['.'.join((mdl.cat, mdl.name)) for mdl in _MODULES]))
+        _LOG.info(
+            f"Imported ({len(_MODULES)}) Plugins => "
+            + str([".".join((mdl.cat, mdl.name)) for mdl in _MODULES])
+        )
 
     async def reload_plugins(self) -> int:
-        """ Reload all Plugins """
+        """Reload all Plugins"""
         _LOG.info("Reloading All Plugins")
 
         await self.manager.stop()
@@ -206,8 +208,10 @@ class _AbstractUserge(Methods):
         await self.manager.init()
         await self.manager.start()
 
-        _LOG.info(f"Reloaded {len(reloaded)} Plugins => "
-                  + str([mdl.name for mdl in reloaded]))
+        _LOG.info(
+            f"Reloaded {len(reloaded)} Plugins => "
+            + str([mdl.name for mdl in reloaded])
+        )
 
         return len(reloaded)
 
@@ -236,38 +240,38 @@ class _AbstractUserge(Methods):
 
 
 class UsergeBot(_AbstractUserge):
-    """ UsergeBot, the bot """
+    """UsergeBot, the bot"""
 
     def __init__(self, **kwargs) -> None:
         super().__init__(name="usergeBot", in_memory=True, **kwargs)
 
     @property
-    def ubot(self) -> 'Userge':
-        """ returns userbot """
+    def ubot(self) -> "Userge":
+        """returns userbot"""
         return self._bot
 
 
 class Userge(_AbstractUserge):
-    """ Userge, the userbot """
+    """Userge, the userbot"""
 
     has_bot = bool(config.BOT_TOKEN)
 
     def __init__(self) -> None:
         kwargs = {
-            'api_id': config.API_ID,
-            'api_hash': config.API_HASH,
-            'workers': config.WORKERS
+            "api_id": config.API_ID,
+            "api_hash": config.API_HASH,
+            "workers": config.WORKERS,
         }
 
         if config.BOT_TOKEN:
-            kwargs['bot_token'] = config.BOT_TOKEN
+            kwargs["bot_token"] = config.BOT_TOKEN
 
         if config.SESSION_STRING and config.BOT_TOKEN:
             RawClient.DUAL_MODE = True
-            kwargs['bot'] = UsergeBot(bot=self, **kwargs)
+            kwargs["bot"] = UsergeBot(bot=self, **kwargs)
 
-        kwargs['name'] = 'userge'
-        kwargs['session_string'] = config.SESSION_STRING or None
+        kwargs["name"] = "userge"
+        kwargs["session_string"] = config.SESSION_STRING or None
         super().__init__(**kwargs)
 
         if config.SESSION_STRING:
@@ -278,8 +282,8 @@ class Userge(_AbstractUserge):
         return RawClient.DUAL_MODE
 
     @property
-    def bot(self) -> Union['UsergeBot', 'Userge']:
-        """ returns usergebot """
+    def bot(self) -> Union["UsergeBot", "Userge"]:
+        """returns usergebot"""
         if self._bot is None:
             if config.BOT_TOKEN:
                 return self
@@ -288,7 +292,7 @@ class Userge(_AbstractUserge):
         return self._bot
 
     async def start(self) -> None:
-        """ start client and bot """
+        """start client and bot"""
         await _wait_for_instance()
         await _set_running(True)
 
@@ -303,7 +307,7 @@ class Userge(_AbstractUserge):
         await self.manager.start()
 
     async def stop(self, **_) -> None:
-        """ stop client and bot """
+        """stop client and bot"""
         _LOG.info("Stopping ...")
 
         await self.manager.stop()
@@ -320,14 +324,16 @@ class Userge(_AbstractUserge):
 
     async def _log_success(self) -> None:
         # pylint: disable=protected-access
-        await self._get_log_client()._channel.log("<pre>Userge started successfully</pre>")
+        await self._get_log_client()._channel.log(
+            "<pre>Userge started successfully</pre>"
+        )
 
     async def _log_exit(self) -> None:
         # pylint: disable=protected-access
         await self._get_log_client()._channel.log("<pre>\nExiting Userge ...</pre>")
 
     def begin(self, coro: Optional[Awaitable[Any]] = None) -> None:
-        """ start userge """
+        """start userge"""
         try:
             self.loop.run_until_complete(self.start())
         except (RuntimeError, KeyboardInterrupt):
@@ -346,14 +352,21 @@ class Userge(_AbstractUserge):
 
         def _handle(num, _) -> None:
             _LOG.info(
-                f"Received Stop Signal [{signal.Signals(num).name}], Exiting Userge ...")
+                f"Received Stop Signal [{signal.Signals(num).name}], Exiting Userge ..."
+            )
 
             idle_event.set()
 
         for sig in (signal.SIGABRT, signal.SIGTERM, signal.SIGINT):
             signal.signal(sig, _handle)
 
-        mode = "[DUAL]" if RawClient.DUAL_MODE else "[BOT]" if config.BOT_TOKEN else "[USER]"
+        mode = (
+            "[DUAL]"
+            if RawClient.DUAL_MODE
+            else "[BOT]"
+            if config.BOT_TOKEN
+            else "[USER]"
+        )
 
         with suppress(asyncio.exceptions.CancelledError, RuntimeError):
             if coro:
@@ -379,9 +392,8 @@ class Userge(_AbstractUserge):
 
         with suppress(RuntimeError):
             self.loop.run_until_complete(
-                asyncio.gather(
-                    *to_cancel,
-                    return_exceptions=True))
+                asyncio.gather(*to_cancel, return_exceptions=True)
+            )
             self.loop.run_until_complete(self.loop.shutdown_asyncgens())
 
         self.loop.stop()
@@ -394,10 +406,16 @@ def _un_wrapper(obj, name, function):
     @functools.wraps(function)
     def _wrapper(*args, **kwargs):
         coroutine = function(*args, **kwargs)
-        if (threading.current_thread() is not threading.main_thread()
-                and inspect.iscoroutine(coroutine)):
+        if (
+            threading.current_thread() is not threading.main_thread()
+            and inspect.iscoroutine(coroutine)
+        ):
+
             async def _():
-                return await asyncio.wrap_future(asyncio.run_coroutine_threadsafe(coroutine, loop))
+                return await asyncio.wrap_future(
+                    asyncio.run_coroutine_threadsafe(coroutine, loop)
+                )
+
             return _()
         return coroutine
 
@@ -408,9 +426,10 @@ def _un_wrap(source):
     for name in dir(source):
         if name.startswith("_"):
             continue
-        wrapped = getattr(getattr(source, name), '__wrapped__', None)
-        if wrapped and (inspect.iscoroutinefunction(wrapped)
-                        or inspect.isasyncgenfunction(wrapped)):
+        wrapped = getattr(getattr(source, name), "__wrapped__", None)
+        if wrapped and (
+            inspect.iscoroutinefunction(wrapped) or inspect.isasyncgenfunction(wrapped)
+        ):
             _un_wrapper(source, name, wrapped)
 
 

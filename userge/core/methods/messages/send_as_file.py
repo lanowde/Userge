@@ -8,7 +8,7 @@
 #
 # All rights reserved.
 
-__all__ = ['SendAsFile']
+__all__ = ["SendAsFile"]
 
 import inspect
 import io
@@ -24,14 +24,16 @@ _LOG = logging.getLogger(__name__)
 
 
 class SendAsFile(RawClient):  # pylint: disable=missing-class-docstring
-    async def send_as_file(self,
-                           chat_id: Union[int, str],
-                           text: str,
-                           as_raw: bool = False,
-                           filename: str = "output.txt",
-                           caption: str = '',
-                           log: Union[bool, str] = False,
-                           reply_to_message_id: Optional[int] = None) -> 'types.bound.Message':
+    async def send_as_file(
+        self,
+        chat_id: Union[int, str],
+        text: str,
+        as_raw: bool = False,
+        filename: str = "output.txt",
+        caption: str = "",
+        log: Union[bool, str] = False,
+        reply_to_message_id: Optional[int] = None,
+    ) -> "types.bound.Message":
         """\nYou can send large outputs as file
 
         Example:
@@ -74,12 +76,14 @@ class SendAsFile(RawClient):  # pylint: disable=missing-class-docstring
         doc = io.BytesIO(text.encode())
         doc.name = filename
 
-        msg = await self.send_document(chat_id=chat_id,
-                                       document=doc,
-                                       caption=caption[:1024],
-                                       disable_notification=True,
-                                       reply_to_message_id=reply_to_message_id)
-        module = inspect.currentframe().f_back.f_globals['__name__']
+        msg = await self.send_document(
+            chat_id=chat_id,
+            document=doc,
+            caption=caption[:1024],
+            disable_notification=True,
+            reply_to_message_id=reply_to_message_id,
+        )
+        module = inspect.currentframe().f_back.f_globals["__name__"]
         if log:
             await self._channel.fwd_msg(msg, module if isinstance(log, bool) else log)
         return types.bound.Message.parse(self, msg, module=module)

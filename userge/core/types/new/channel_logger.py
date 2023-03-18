@@ -8,7 +8,7 @@
 #
 # All rights reserved.
 
-__all__ = ['ChannelLogger']
+__all__ = ["ChannelLogger"]
 
 import asyncio
 from typing import Optional, Union
@@ -24,7 +24,7 @@ from ... import client as _client  # pylint: disable=unused-import
 
 
 def _gen_string(name: str) -> str:
-    parts = name.split('.')
+    parts = name.split(".")
 
     if len(parts) >= 2:
         name = parts[-2]
@@ -33,8 +33,11 @@ def _gen_string(name: str) -> str:
 
 
 class ChannelLogger:
-    """ Channel logger for Userge """
-    def __init__(self, client: Union['_client.Userge', '_client.UsergeBot'], name: str) -> None:
+    """Channel logger for Userge"""
+
+    def __init__(
+        self, client: Union["_client.Userge", "_client.UsergeBot"], name: str
+    ) -> None:
         self._id = config.LOG_CHANNEL_ID
         self._client = client
         self._string = _gen_string(name)
@@ -53,7 +56,7 @@ class ChannelLogger:
         link = f"https://t.me/c/{str(config.LOG_CHANNEL_ID)[4:]}/{message_id}"
         return f"<b><a href='{link}'>Preview</a></b>"
 
-    async def log(self, text: str, name: str = '') -> int:
+    async def log(self, text: str, name: str = "") -> int:
         """\nsend text message to log channel.
 
         Parameters:
@@ -70,20 +73,26 @@ class ChannelLogger:
         if name:
             string = _gen_string(name)
         try:
-            msg = await self._client.send_message(chat_id=self._id,
-                                                  text=string.format(text.strip()),
-                                                  disable_web_page_preview=True)
+            msg = await self._client.send_message(
+                chat_id=self._id,
+                text=string.format(text.strip()),
+                disable_web_page_preview=True,
+            )
         except MessageTooLong:
-            msg = await self._client.send_as_file(chat_id=self._id,
-                                                  text=string.format(text.strip()),
-                                                  filename="logs.log",
-                                                  caption=string)
+            msg = await self._client.send_as_file(
+                chat_id=self._id,
+                text=string.format(text.strip()),
+                filename="logs.log",
+                caption=string,
+            )
         return msg.id
 
-    async def fwd_msg(self,
-                      message: Union['_message.Message', 'RawMessage'],
-                      name: str = '',
-                      as_copy: bool = True) -> None:
+    async def fwd_msg(
+        self,
+        message: Union["_message.Message", "RawMessage"],
+        name: str = "",
+        as_copy: bool = True,
+    ) -> None:
         """\nforward message to log channel.
 
         Parameters:
@@ -114,11 +123,15 @@ class ChannelLogger:
                     pass
             else:
                 await self.log(
-                    message.text.html if hasattr(message.text, 'html') else message.text, name)
+                    message.text.html
+                    if hasattr(message.text, "html")
+                    else message.text,
+                    name,
+                )
 
-    async def store(self,
-                    message: Optional['_message.Message'],
-                    caption: Optional[str] = '') -> int:
+    async def store(
+        self, message: Optional["_message.Message"], caption: Optional[str] = ""
+    ) -> int:
         """\nstore message to log channel.
 
         Parameters:
@@ -132,7 +145,7 @@ class ChannelLogger:
             message_id on success or None
         """
         file_id = None
-        caption = caption or ''
+        caption = caption or ""
         if message:
             file_id = get_file_id_of_media(message)
             if not caption and message.caption:
@@ -140,21 +153,23 @@ class ChannelLogger:
         if message and message.media and file_id:
             if caption:
                 caption = self._string.format(caption.strip())
-            msg = await message.client.send_cached_media(chat_id=self._id,
-                                                         file_id=file_id,
-                                                         caption=caption)
+            msg = await message.client.send_cached_media(
+                chat_id=self._id, file_id=file_id, caption=caption
+            )
             message_id = msg.id
         else:
             message_id = await self.log(caption)
         return message_id
 
-    async def forward_stored(self,
-                             client: Union['_client.Userge', '_client.UsergeBot'],
-                             message_id: int,
-                             chat_id: int,
-                             user_id: int,
-                             reply_to_message_id: int,
-                             del_in: int = 0) -> None:
+    async def forward_stored(
+        self,
+        client: Union["_client.Userge", "_client.UsergeBot"],
+        message_id: int,
+        chat_id: int,
+        user_id: int,
+        reply_to_message_id: int,
+        del_in: int = 0,
+    ) -> None:
         """\nforward stored message from log channel.
 
         Parameters:
@@ -181,19 +196,21 @@ class ChannelLogger:
         """
         if not message_id or not isinstance(message_id, int):
             return
-        message = await client.get_messages(chat_id=self._id,
-                                            message_ids=message_id)
-        caption = ''
+        message = await client.get_messages(chat_id=self._id, message_ids=message_id)
+        caption = ""
         if message.caption:
-            caption = message.caption.html.split('\n\n', maxsplit=1)[-1]
+            caption = message.caption.html.split("\n\n", maxsplit=1)[-1]
         elif message.text:
-            caption = message.text.html.split('\n\n', maxsplit=1)[-1]
+            caption = message.text.html.split("\n\n", maxsplit=1)[-1]
         if caption:
             u_dict = await client.get_user_dict(user_id)
             chat = await client.get_chat(chat_id)
-            u_dict.update({
-                'chat': chat.title if chat.title else "this group",
-                'count': chat.members_count})
+            u_dict.update(
+                {
+                    "chat": chat.title if chat.title else "this group",
+                    "count": chat.members_count,
+                }
+            )
             caption = caption.format_map(SafeDict(**u_dict))
         file_id = get_file_id_of_media(message)
         caption, buttons = parse_buttons(caption)
@@ -204,14 +221,16 @@ class ChannelLogger:
                     file_id=file_id,
                     caption=caption,
                     reply_to_message_id=reply_to_message_id,
-                    reply_markup=buttons if client.is_bot and buttons else None)
+                    reply_markup=buttons if client.is_bot and buttons else None,
+                )
             else:
                 msg = await client.send_message(
                     chat_id=chat_id,
                     text=caption,
                     reply_to_message_id=reply_to_message_id,
                     disable_web_page_preview=True,
-                    reply_markup=buttons if client.is_bot and buttons else None)
+                    reply_markup=buttons if client.is_bot and buttons else None,
+                )
             if del_in and msg:
                 await asyncio.sleep(del_in)
                 await msg.delete()

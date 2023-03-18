@@ -8,7 +8,7 @@
 #
 # All rights reserved.
 
-__all__ = ['Message']
+__all__ = ["Message"]
 
 import re
 import asyncio
@@ -16,10 +16,18 @@ from contextlib import contextmanager
 from datetime import datetime
 from typing import List, Dict, Tuple, Union, Optional, Sequence, Callable, Any
 
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message as RawMessage
+from pyrogram.types import (
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+    Message as RawMessage,
+)
 from pyrogram.errors import (
-    MessageAuthorRequired, MessageTooLong, MessageNotModified,
-    MessageIdInvalid, MessageDeleteForbidden, BotInlineDisabled
+    MessageAuthorRequired,
+    MessageTooLong,
+    MessageNotModified,
+    MessageIdInvalid,
+    MessageDeleteForbidden,
+    BotInlineDisabled,
 )
 from pyrogram import enums
 
@@ -33,10 +41,13 @@ _ERROR_MSG_DELETE_TIMEOUT = 5
 
 
 class Message(RawMessage):
-    """ Modded Message Class For Userge """
-    def __init__(self, mvars: Dict[str, object], module: str, **kwargs: Union[str, bool]) -> None:
+    """Modded Message Class For Userge"""
+
+    def __init__(
+        self, mvars: Dict[str, object], module: str, **kwargs: Union[str, bool]
+    ) -> None:
         self._filtered = False
-        self._filtered_input_str = ''
+        self._filtered_input_str = ""
         self._flags: Dict[str, str] = {}
         self._process_canceled = False
         self._module = module
@@ -44,78 +55,88 @@ class Message(RawMessage):
         super().__init__(**mvars)
 
     @classmethod
-    def parse(cls, client: Union['_client.Userge', '_client.UsergeBot'],
-              message: Union[RawMessage, 'Message'], **kwargs: Union[str, bool]) -> 'Message':
-        """ parse message """
+    def parse(
+        cls,
+        client: Union["_client.Userge", "_client.UsergeBot"],
+        message: Union[RawMessage, "Message"],
+        **kwargs: Union[str, bool],
+    ) -> "Message":
+        """parse message"""
         if isinstance(message, Message):
             return message
         mvars = vars(message)
-        if mvars['reply_to_message'] and not kwargs.pop("stop", False):
-            mvars['reply_to_message'] = cls.parse(client, mvars['reply_to_message'],
-                                                  stop=True, **kwargs)
+        if mvars["reply_to_message"] and not kwargs.pop("stop", False):
+            mvars["reply_to_message"] = cls.parse(
+                client, mvars["reply_to_message"], stop=True, **kwargs
+            )
         mvars["client"] = mvars.pop("_client", None) or client
         return cls(mvars, **kwargs)
 
     @property
-    def client(self) -> Union['_client.Userge', '_client.UsergeBot']:
-        """ returns client """
+    def client(self) -> Union["_client.Userge", "_client.UsergeBot"]:
+        """returns client"""
         return self._client
 
     @property
     def input_raw(self) -> str:
-        """ Returns the input string without command as raw """
-        input_ = self.text.html if hasattr(self.text, 'html') else self.text
-        if ' ' in input_ or '\n' in input_:
+        """Returns the input string without command as raw"""
+        input_ = self.text.html if hasattr(self.text, "html") else self.text
+        if " " in input_ or "\n" in input_:
             return str(input_.split(maxsplit=1)[1].strip())
-        return ''
+        return ""
 
     @property
     def input_str(self) -> str:
-        """ Returns the input string without command """
+        """Returns the input string without command"""
         input_ = self.text
-        if ' ' in input_ or '\n' in input_:
+        if " " in input_ or "\n" in input_:
             return str(input_.split(maxsplit=1)[1].strip())
-        return ''
+        return ""
 
     @property
     def input_or_reply_raw(self) -> str:
-        """ Returns the input string  or replied msg text without command as raw """
+        """Returns the input string  or replied msg text without command as raw"""
         input_ = self.input_raw
         if not input_ and self.reply_to_message:
             input_ = (
-                self.reply_to_message.text.html if self.reply_to_message.text else
-                self.reply_to_message.caption.html if self.reply_to_message.caption else ''
+                self.reply_to_message.text.html
+                if self.reply_to_message.text
+                else self.reply_to_message.caption.html
+                if self.reply_to_message.caption
+                else ""
             ).strip()
         return input_
 
     @property
     def input_or_reply_str(self) -> str:
-        """ Returns the input string  or replied msg text without command """
+        """Returns the input string  or replied msg text without command"""
         input_ = self.input_str
         if not input_ and self.reply_to_message:
-            input_ = (self.reply_to_message.text or self.reply_to_message.caption or '').strip()
+            input_ = (
+                self.reply_to_message.text or self.reply_to_message.caption or ""
+            ).strip()
         return input_
 
     @property
     def filtered_input_str(self) -> str:
-        """ Returns the filtered input string without command and flags """
+        """Returns the filtered input string without command and flags"""
         self._filter()
         return self._filtered_input_str
 
     @property
     def flags(self) -> Dict[str, str]:
-        """ Returns all flags in input string as `Dict` """
+        """Returns all flags in input string as `Dict`"""
         self._filter()
         return self._flags
 
     @property
     def process_is_canceled(self) -> bool:
-        """ Returns True if process canceled """
+        """Returns True if process canceled"""
         return self._process_canceled
 
     @property
     def extract_user_and_text(self) -> Tuple[Optional[Union[str, int]], Optional[str]]:
-        """ Extracts User and Text
+        """Extracts User and Text
         [NOTE]: This method checks for reply first.
         On Success:
             user (``str | int | None``) and text (``str | None``)
@@ -152,15 +173,15 @@ class Message(RawMessage):
     def _filter(self) -> None:
         if self._filtered:
             return
-        prefix = str(self._kwargs.get('prefix', '-'))
+        prefix = str(self._kwargs.get("prefix", "-"))
         input_str = self.input_str
 
         if input_str.startswith(prefix):
-            del_pre = bool(self._kwargs.get('del_pre', False))
+            del_pre = bool(self._kwargs.get("del_pre", False))
             pattern = re.compile(rf"({prefix}[A-z]+)(=?\S*)$")
 
             end = False
-            parts = input_str.split(' ')
+            parts = input_str.split(" ")
             i = 0
             while not end and len(parts) > i:
                 part = parts[i]
@@ -169,7 +190,7 @@ class Message(RawMessage):
                     i += 1
                     continue
                 # part can contain new lines
-                sub_parts = part.split('\n')
+                sub_parts = part.split("\n")
                 j = 0
                 while len(sub_parts) > j:
                     sub_part = sub_parts[j]
@@ -182,14 +203,16 @@ class Message(RawMessage):
                         end = True
                         break
                     items: Sequence[str] = match.groups()
-                    key = items[0].lstrip(prefix).lower() if del_pre else items[0].lower()
-                    self._flags[key] = items[1].lstrip('=') or ''
+                    key = (
+                        items[0].lstrip(prefix).lower() if del_pre else items[0].lower()
+                    )
+                    self._flags[key] = items[1].lstrip("=") or ""
                     sub_parts.pop(j)
                 # rebuild that split part
-                parts[i] = '\n'.join(sub_parts).strip()
+                parts[i] = "\n".join(sub_parts).strip()
                 i += 1
 
-            self._filtered_input_str = ' '.join(parts).strip()
+            self._filtered_input_str = " ".join(parts).strip()
 
         else:
             self._filtered_input_str = input_str
@@ -219,14 +242,15 @@ class Message(RawMessage):
 
     @contextmanager
     def cancel_callback(self, callback: Optional[Callable[[], Any]] = None) -> None:
-        """ run in a cancelable context. callback will be called when user cancel it. """
+        """run in a cancelable context. callback will be called when user cancel it."""
         is_first = False
         key = self._key
         if key not in _CANCEL_CALLBACKS:
             _CANCEL_CALLBACKS[key] = []
             if not self._process_canceled:
                 _CANCEL_CALLBACKS[key].append(
-                    lambda: setattr(self, '_process_canceled', True))
+                    lambda: setattr(self, "_process_canceled", True)
+                )
             is_first = True
         if callback:
             _CANCEL_CALLBACKS[key].append(callback)
@@ -254,13 +278,15 @@ class Message(RawMessage):
             func = self.edit
         await func("`Process Canceled!`", del_in=5)
 
-    async def reply_as_file(self,
-                            text: str,
-                            as_raw: bool = False,
-                            filename: str = "output.txt",
-                            caption: str = '',
-                            log: Union[bool, str] = False,
-                            delete_message: bool = True) -> 'Message':
+    async def reply_as_file(
+        self,
+        text: str,
+        as_raw: bool = False,
+        filename: str = "output.txt",
+        caption: str = "",
+        log: Union[bool, str] = False,
+        delete_message: bool = True,
+    ) -> "Message":
         """\nYou can send large outputs as file
 
         Example:
@@ -292,32 +318,35 @@ class Message(RawMessage):
         Returns:
             On success, the sent Message is returned.
         """
-        reply_to_id = self.reply_to_message.id if self.reply_to_message \
-            else self.id
+        reply_to_id = self.reply_to_message.id if self.reply_to_message else self.id
         if delete_message:
             asyncio.get_event_loop().create_task(self.delete())
         if log and isinstance(log, bool):
             log = self._module
-        return await self._client.send_as_file(chat_id=self.chat.id,
-                                               text=text,
-                                               as_raw=as_raw,
-                                               filename=filename,
-                                               caption=caption,
-                                               log=log,
-                                               reply_to_message_id=reply_to_id)
+        return await self._client.send_as_file(
+            chat_id=self.chat.id,
+            text=text,
+            as_raw=as_raw,
+            filename=filename,
+            caption=caption,
+            log=log,
+            reply_to_message_id=reply_to_id,
+        )
 
-    async def reply(self,
-                    text: str,
-                    del_in: int = -1,
-                    log: Union[bool, str] = False,
-                    quote: Optional[bool] = None,
-                    parse_mode: Optional[enums.ParseMode] = None,
-                    disable_web_page_preview: Optional[bool] = None,
-                    disable_notification: Optional[bool] = None,
-                    reply_to_message_id: Optional[int] = None,
-                    schedule_date: Optional[datetime] = None,
-                    protect_content: Optional[bool] = None,
-                    reply_markup: InlineKeyboardMarkup = None) -> Union['Message', bool]:
+    async def reply(
+        self,
+        text: str,
+        del_in: int = -1,
+        log: Union[bool, str] = False,
+        quote: Optional[bool] = None,
+        parse_mode: Optional[enums.ParseMode] = None,
+        disable_web_page_preview: Optional[bool] = None,
+        disable_notification: Optional[bool] = None,
+        reply_to_message_id: Optional[int] = None,
+        schedule_date: Optional[datetime] = None,
+        protect_content: Optional[bool] = None,
+        reply_markup: InlineKeyboardMarkup = None,
+    ) -> Union["Message", bool]:
         """\nExample:
                 message.reply("hello")
 
@@ -386,28 +415,32 @@ class Message(RawMessage):
             reply_to_message_id = self.id
         if log and isinstance(log, bool):
             log = self._module
-        return await self._client.send_message(chat_id=self.chat.id,
-                                               text=text,
-                                               del_in=del_in,
-                                               log=log,
-                                               parse_mode=parse_mode,
-                                               disable_web_page_preview=disable_web_page_preview,
-                                               disable_notification=disable_notification,
-                                               reply_to_message_id=reply_to_message_id,
-                                               schedule_date=schedule_date,
-                                               protect_content=protect_content,
-                                               reply_markup=reply_markup)
+        return await self._client.send_message(
+            chat_id=self.chat.id,
+            text=text,
+            del_in=del_in,
+            log=log,
+            parse_mode=parse_mode,
+            disable_web_page_preview=disable_web_page_preview,
+            disable_notification=disable_notification,
+            reply_to_message_id=reply_to_message_id,
+            schedule_date=schedule_date,
+            protect_content=protect_content,
+            reply_markup=reply_markup,
+        )
 
     reply_text = reply
 
-    async def edit(self,
-                   text: str,
-                   del_in: int = -1,
-                   log: Union[bool, str] = False,
-                   sudo: bool = True,
-                   parse_mode: Optional[enums.ParseMode] = None,
-                   disable_web_page_preview: Optional[bool] = None,
-                   reply_markup: InlineKeyboardMarkup = None) -> Union['Message', bool]:
+    async def edit(
+        self,
+        text: str,
+        del_in: int = -1,
+        log: Union[bool, str] = False,
+        sudo: bool = True,
+        parse_mode: Optional[enums.ParseMode] = None,
+        disable_web_page_preview: Optional[bool] = None,
+        reply_markup: InlineKeyboardMarkup = None,
+    ) -> Union["Message", bool]:
         """\nExample:
                 message.edit_text("hello")
 
@@ -459,17 +492,20 @@ class Message(RawMessage):
                 log=log,
                 parse_mode=parse_mode,
                 disable_web_page_preview=disable_web_page_preview,
-                reply_markup=reply_markup)
+                reply_markup=reply_markup,
+            )
         except MessageNotModified:
             return self
         except (MessageAuthorRequired, MessageIdInvalid) as m_er:
             if sudo:
-                msg = await self.reply(text=text,
-                                       del_in=del_in,
-                                       log=log,
-                                       parse_mode=parse_mode,
-                                       disable_web_page_preview=disable_web_page_preview,
-                                       reply_markup=reply_markup)
+                msg = await self.reply(
+                    text=text,
+                    del_in=del_in,
+                    log=log,
+                    parse_mode=parse_mode,
+                    disable_web_page_preview=disable_web_page_preview,
+                    reply_markup=reply_markup,
+                )
                 if isinstance(msg, Message):
                     self.id = msg.id  # pylint: disable=W0201
                 return msg
@@ -477,14 +513,16 @@ class Message(RawMessage):
 
     edit_text = try_to_edit = edit
 
-    async def force_edit(self,
-                         text: str,
-                         del_in: int = -1,
-                         log: Union[bool, str] = False,
-                         parse_mode: Optional[enums.ParseMode] = None,
-                         disable_web_page_preview: Optional[bool] = None,
-                         reply_markup: InlineKeyboardMarkup = None,
-                         **kwargs) -> Union['Message', bool]:
+    async def force_edit(
+        self,
+        text: str,
+        del_in: int = -1,
+        log: Union[bool, str] = False,
+        parse_mode: Optional[enums.ParseMode] = None,
+        disable_web_page_preview: Optional[bool] = None,
+        reply_markup: InlineKeyboardMarkup = None,
+        **kwargs,
+    ) -> Union["Message", bool]:
         """\nThis will first try to message.edit.
         If it raise MessageAuthorRequired or
         MessageIdInvalid error, run message.reply.
@@ -526,31 +564,37 @@ class Message(RawMessage):
             :obj:`Message` or True is returned.
         """
         try:
-            return await self.edit(text=text,
-                                   del_in=del_in,
-                                   log=log,
-                                   sudo=False,
-                                   parse_mode=parse_mode,
-                                   disable_web_page_preview=disable_web_page_preview,
-                                   reply_markup=reply_markup)
+            return await self.edit(
+                text=text,
+                del_in=del_in,
+                log=log,
+                sudo=False,
+                parse_mode=parse_mode,
+                disable_web_page_preview=disable_web_page_preview,
+                reply_markup=reply_markup,
+            )
         except (MessageAuthorRequired, MessageIdInvalid):
-            return await self.reply(text=text,
-                                    del_in=del_in,
-                                    log=log,
-                                    parse_mode=parse_mode,
-                                    disable_web_page_preview=disable_web_page_preview,
-                                    reply_markup=reply_markup,
-                                    **kwargs)
+            return await self.reply(
+                text=text,
+                del_in=del_in,
+                log=log,
+                parse_mode=parse_mode,
+                disable_web_page_preview=disable_web_page_preview,
+                reply_markup=reply_markup,
+                **kwargs,
+            )
 
-    async def err(self,
-                  text: str,
-                  del_in: int = -1,
-                  show_help: bool = True,
-                  log: Union[bool, str] = False,
-                  sudo: bool = True,
-                  parse_mode: Optional[enums.ParseMode] = None,
-                  disable_web_page_preview: Optional[bool] = None,
-                  reply_markup: InlineKeyboardMarkup = None) -> Union['Message', bool]:
+    async def err(
+        self,
+        text: str,
+        del_in: int = -1,
+        show_help: bool = True,
+        log: Union[bool, str] = False,
+        sudo: bool = True,
+        parse_mode: Optional[enums.ParseMode] = None,
+        disable_web_page_preview: Optional[bool] = None,
+        reply_markup: InlineKeyboardMarkup = None,
+    ) -> Union["Message", bool]:
         """\nYou can send error messages with command info button using this method
 
         Example:
@@ -603,27 +647,33 @@ class Message(RawMessage):
             is_cmd = False
         if not is_cmd or not bool(config.BOT_TOKEN):
             del_in = del_in if del_in > 0 else _ERROR_MSG_DELETE_TIMEOUT
-            return await self.edit(text=_ERROR_STRING.format(text),
-                                   del_in=del_in,
-                                   log=log,
-                                   sudo=sudo,
-                                   parse_mode=parse_mode,
-                                   disable_web_page_preview=disable_web_page_preview,
-                                   reply_markup=reply_markup)
+            return await self.edit(
+                text=_ERROR_STRING.format(text),
+                del_in=del_in,
+                log=log,
+                sudo=sudo,
+                parse_mode=parse_mode,
+                disable_web_page_preview=disable_web_page_preview,
+                reply_markup=reply_markup,
+            )
         bot_username = (await self._client.get_me()).username
         if self._client.is_bot:
-            btn = [InlineKeyboardButton("Info!", url=f"t.me/{bot_username}?start={cmd}")]
+            btn = [
+                InlineKeyboardButton("Info!", url=f"t.me/{bot_username}?start={cmd}")
+            ]
             if reply_markup:
                 reply_markup.inline_keyboard.append(btn)
             else:
                 reply_markup = InlineKeyboardMarkup([btn])
-            msg_obj = await self.edit(text=_ERROR_STRING.format(text),
-                                      del_in=del_in,
-                                      log=log,
-                                      sudo=sudo,
-                                      parse_mode=parse_mode,
-                                      disable_web_page_preview=disable_web_page_preview,
-                                      reply_markup=reply_markup)
+            msg_obj = await self.edit(
+                text=_ERROR_STRING.format(text),
+                del_in=del_in,
+                log=log,
+                sudo=sudo,
+                parse_mode=parse_mode,
+                disable_web_page_preview=disable_web_page_preview,
+                reply_markup=reply_markup,
+            )
         else:
             bot_username = (await self._client.bot.get_me()).username
             try:
@@ -632,28 +682,31 @@ class Message(RawMessage):
                 )
                 await self.delete()
                 msg_obj = await self._client.send_inline_bot_result(
-                    self.chat.id, query_id=k.query_id,
-                    result_id=k.results[2].id
+                    self.chat.id, query_id=k.query_id, result_id=k.results[2].id
                 )
             except (IndexError, BotInlineDisabled):
                 del_in = del_in if del_in > 0 else _ERROR_MSG_DELETE_TIMEOUT
-                msg_obj = await self.edit(text=_ERROR_STRING.format(text),
-                                          del_in=del_in,
-                                          log=log,
-                                          sudo=sudo,
-                                          parse_mode=parse_mode,
-                                          disable_web_page_preview=disable_web_page_preview,
-                                          reply_markup=reply_markup)
+                msg_obj = await self.edit(
+                    text=_ERROR_STRING.format(text),
+                    del_in=del_in,
+                    log=log,
+                    sudo=sudo,
+                    parse_mode=parse_mode,
+                    disable_web_page_preview=disable_web_page_preview,
+                    reply_markup=reply_markup,
+                )
         return msg_obj
 
-    async def force_err(self,
-                        text: str,
-                        del_in: int = -1,
-                        show_help: bool = True,
-                        log: Union[bool, str] = False,
-                        parse_mode: Optional[enums.ParseMode] = None,
-                        disable_web_page_preview: Optional[bool] = None,
-                        reply_markup: InlineKeyboardMarkup = None) -> Union['Message', bool]:
+    async def force_err(
+        self,
+        text: str,
+        del_in: int = -1,
+        show_help: bool = True,
+        log: Union[bool, str] = False,
+        parse_mode: Optional[enums.ParseMode] = None,
+        disable_web_page_preview: Optional[bool] = None,
+        reply_markup: InlineKeyboardMarkup = None,
+    ) -> Union["Message", bool]:
         """\nThis will first try to message.err.
         If it raise MessageAuthorRequired or
         MessageIdInvalid error, run message.reply.
@@ -699,41 +752,53 @@ class Message(RawMessage):
                 the edited or replied :obj:`Message` or True is returned.
         """
         try:
-            msg_obj = await self.err(text=text,
-                                     del_in=del_in,
-                                     show_help=show_help,
-                                     log=log,
-                                     parse_mode=parse_mode,
-                                     disable_web_page_preview=disable_web_page_preview,
-                                     reply_markup=reply_markup)
+            msg_obj = await self.err(
+                text=text,
+                del_in=del_in,
+                show_help=show_help,
+                log=log,
+                parse_mode=parse_mode,
+                disable_web_page_preview=disable_web_page_preview,
+                reply_markup=reply_markup,
+            )
         except (MessageAuthorRequired, MessageIdInvalid):
             if show_help:
                 command_name = self.text.split()[0].strip()
-                cmd = command_name.lstrip(config.CMD_TRIGGER).lstrip(config.SUDO_TRIGGER)
+                cmd = command_name.lstrip(config.CMD_TRIGGER).lstrip(
+                    config.SUDO_TRIGGER
+                )
                 is_cmd = is_command(cmd)
             else:
                 is_cmd = False
             if not is_cmd or not bool(config.BOT_TOKEN):
                 del_in = del_in if del_in > 0 else _ERROR_MSG_DELETE_TIMEOUT
-                return await self.reply(text=_ERROR_STRING.format(text),
-                                        del_in=del_in,
-                                        log=log,
-                                        parse_mode=parse_mode,
-                                        disable_web_page_preview=disable_web_page_preview,
-                                        reply_markup=reply_markup)
+                return await self.reply(
+                    text=_ERROR_STRING.format(text),
+                    del_in=del_in,
+                    log=log,
+                    parse_mode=parse_mode,
+                    disable_web_page_preview=disable_web_page_preview,
+                    reply_markup=reply_markup,
+                )
             bot_username = (await self._client.get_me()).username
             if self._client.is_bot:
-                btn = [InlineKeyboardButton("Info!", url=f"t.me/{bot_username}?start={cmd}")]
+                btn = [
+                    InlineKeyboardButton(
+                        "Info!", url=f"t.me/{bot_username}?start={cmd}"
+                    )
+                ]
                 if reply_markup:
                     reply_markup.inline_keyboard.append(btn)
                 else:
                     reply_markup = InlineKeyboardMarkup([btn])
-                msg_obj = await self.reply(text=_ERROR_STRING.format(text),
-                                           del_in=del_in,
-                                           log=log,
-                                           parse_mode=parse_mode,
-                                           disable_web_page_preview=disable_web_page_preview,
-                                           reply_markup=reply_markup)
+                msg_obj = await self.reply(
+                    text=_ERROR_STRING.format(text),
+                    del_in=del_in,
+                    log=log,
+                    parse_mode=parse_mode,
+                    disable_web_page_preview=disable_web_page_preview,
+                    reply_markup=reply_markup,
+                )
             else:
                 bot_username = (await self._client.bot.get_me()).username
                 try:
@@ -742,29 +807,32 @@ class Message(RawMessage):
                     )
                     await self.delete()
                     msg_obj = await self._client.send_inline_bot_result(
-                        self.chat.id, query_id=k.query_id,
-                        result_id=k.results[2].id
+                        self.chat.id, query_id=k.query_id, result_id=k.results[2].id
                     )
                 except (IndexError, BotInlineDisabled):
                     del_in = del_in if del_in > 0 else _ERROR_MSG_DELETE_TIMEOUT
-                    msg_obj = await self.reply(text=_ERROR_STRING.format(text),
-                                               del_in=del_in,
-                                               log=log,
-                                               parse_mode=parse_mode,
-                                               disable_web_page_preview=disable_web_page_preview,
-                                               reply_markup=reply_markup)
+                    msg_obj = await self.reply(
+                        text=_ERROR_STRING.format(text),
+                        del_in=del_in,
+                        log=log,
+                        parse_mode=parse_mode,
+                        disable_web_page_preview=disable_web_page_preview,
+                        reply_markup=reply_markup,
+                    )
         return msg_obj
 
-    async def edit_or_send_as_file(self,
-                                   text: str,
-                                   del_in: int = -1,
-                                   log: Union[bool, str] = False,
-                                   sudo: bool = True,
-                                   as_raw: bool = False,
-                                   parse_mode: Optional[enums.ParseMode] = None,
-                                   disable_web_page_preview: Optional[bool] = None,
-                                   reply_markup: InlineKeyboardMarkup = None,
-                                   **kwargs) -> Union['Message', bool]:
+    async def edit_or_send_as_file(
+        self,
+        text: str,
+        del_in: int = -1,
+        log: Union[bool, str] = False,
+        sudo: bool = True,
+        as_raw: bool = False,
+        parse_mode: Optional[enums.ParseMode] = None,
+        disable_web_page_preview: Optional[bool] = None,
+        reply_markup: InlineKeyboardMarkup = None,
+        **kwargs,
+    ) -> Union["Message", bool]:
         """\nThis will first try to message.edit.
         If it raises MessageTooLong error,
         run message.send_as_file.
@@ -816,28 +884,32 @@ class Message(RawMessage):
             RPCError: In case of a Telegram RPC error.
         """
         try:
-            return await self.edit(text=text,
-                                   del_in=del_in,
-                                   log=log,
-                                   sudo=sudo,
-                                   parse_mode=parse_mode,
-                                   disable_web_page_preview=disable_web_page_preview,
-                                   reply_markup=reply_markup)
+            return await self.edit(
+                text=text,
+                del_in=del_in,
+                log=log,
+                sudo=sudo,
+                parse_mode=parse_mode,
+                disable_web_page_preview=disable_web_page_preview,
+                reply_markup=reply_markup,
+            )
         except (MessageTooLong, OSError):
             return await self.reply_as_file(text=text, as_raw=as_raw, log=log, **kwargs)
 
-    async def reply_or_send_as_file(self,
-                                    text: str,
-                                    del_in: int = -1,
-                                    log: Union[bool, str] = False,
-                                    quote: Optional[bool] = None,
-                                    as_raw: bool = False,
-                                    parse_mode: Optional[enums.ParseMode] = None,
-                                    disable_web_page_preview: Optional[bool] = None,
-                                    disable_notification: Optional[bool] = None,
-                                    reply_to_message_id: Optional[int] = None,
-                                    reply_markup: InlineKeyboardMarkup = None,
-                                    **kwargs) -> Union['Message', bool]:
+    async def reply_or_send_as_file(
+        self,
+        text: str,
+        del_in: int = -1,
+        log: Union[bool, str] = False,
+        quote: Optional[bool] = None,
+        as_raw: bool = False,
+        parse_mode: Optional[enums.ParseMode] = None,
+        disable_web_page_preview: Optional[bool] = None,
+        disable_notification: Optional[bool] = None,
+        reply_to_message_id: Optional[int] = None,
+        reply_markup: InlineKeyboardMarkup = None,
+        **kwargs,
+    ) -> Union["Message", bool]:
         """\nThis will first try to message.reply.
         If it raise MessageTooLong error,
         run message.send_as_file.
@@ -906,27 +978,31 @@ class Message(RawMessage):
             RPCError: In case of a Telegram RPC error.
         """
         try:
-            return await self.reply(text=text,
-                                    del_in=del_in,
-                                    log=log,
-                                    quote=quote,
-                                    parse_mode=parse_mode,
-                                    disable_web_page_preview=disable_web_page_preview,
-                                    disable_notification=disable_notification,
-                                    reply_to_message_id=reply_to_message_id,
-                                    reply_markup=reply_markup)
+            return await self.reply(
+                text=text,
+                del_in=del_in,
+                log=log,
+                quote=quote,
+                parse_mode=parse_mode,
+                disable_web_page_preview=disable_web_page_preview,
+                disable_notification=disable_notification,
+                reply_to_message_id=reply_to_message_id,
+                reply_markup=reply_markup,
+            )
         except MessageTooLong:
             return await self.reply_as_file(text=text, as_raw=as_raw, log=log, **kwargs)
 
-    async def force_edit_or_send_as_file(self,
-                                         text: str,
-                                         del_in: int = -1,
-                                         log: Union[bool, str] = False,
-                                         as_raw: bool = False,
-                                         parse_mode: Optional[enums.ParseMode] = None,
-                                         disable_web_page_preview: Optional[bool] = None,
-                                         reply_markup: InlineKeyboardMarkup = None,
-                                         **kwargs) -> Union['Message', bool]:
+    async def force_edit_or_send_as_file(
+        self,
+        text: str,
+        del_in: int = -1,
+        log: Union[bool, str] = False,
+        as_raw: bool = False,
+        parse_mode: Optional[enums.ParseMode] = None,
+        disable_web_page_preview: Optional[bool] = None,
+        reply_markup: InlineKeyboardMarkup = None,
+        **kwargs,
+    ) -> Union["Message", bool]:
         """\nThis will first try to message.edit_or_send_as_file.
         If it raise MessageAuthorRequired
         or MessageIdInvalid error, run message.reply_or_send_as_file.
@@ -981,7 +1057,8 @@ class Message(RawMessage):
                 parse_mode=parse_mode,
                 disable_web_page_preview=disable_web_page_preview,
                 reply_markup=reply_markup,
-                **kwargs)
+                **kwargs,
+            )
         except (MessageAuthorRequired, MessageIdInvalid):
             return await self.reply_or_send_as_file(
                 text=text,
@@ -991,7 +1068,8 @@ class Message(RawMessage):
                 parse_mode=parse_mode,
                 disable_web_page_preview=disable_web_page_preview,
                 reply_markup=reply_markup,
-                **kwargs)
+                **kwargs,
+            )
 
     # pylint: disable=arguments-differ
     async def delete(self, revoke: bool = True, sudo: bool = True) -> bool:

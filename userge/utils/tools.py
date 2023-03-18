@@ -23,7 +23,7 @@ import userge
 _LOG = userge.logging.getLogger(__name__)
 
 _BTN_URL_REGEX = re.compile(r"(\[([^\[]+?)]\[buttonurl:/{0,2}(.+?)(:same)?])")
-_PTN_SPLIT = re.compile(r'(\.\d+|\.|\d+)')
+_PTN_SPLIT = re.compile(r"(\.\d+|\.|\d+)")
 _PTN_URL = re.compile(r"(?:https?|ftp)://[^|\s]+\.[^|\s]+")
 
 
@@ -32,7 +32,7 @@ def is_url(url: str) -> bool:
 
 
 def sort_file_name_key(file_name: str) -> tuple:
-    """ sort key for file names """
+    """sort key for file names"""
     if not isinstance(file_name, str):
         file_name = str(file_name)
     return tuple(_sort_algo(_PTN_SPLIT.split(file_name.lower())))
@@ -40,7 +40,7 @@ def sort_file_name_key(file_name: str) -> tuple:
 
 # this algo doesn't support signed values
 def _sort_algo(data: List[str]) -> Iterator[Union[str, float]]:
-    """ sort algo for file names """
+    """sort algo for file names"""
     p1 = 0.0
     for p2 in data:
         # skipping null values
@@ -55,7 +55,7 @@ def _sort_algo(data: List[str]) -> Iterator[Union[str, float]]:
         if c.isdigit():
             # p2 should be [0-9]+
             # so c should be 0-9
-            if c == '0':
+            if c == "0":
                 # add padding
                 # this fixes `a1` and `a01` messing
                 if isinstance(p1, str):
@@ -67,10 +67,10 @@ def _sort_algo(data: List[str]) -> Iterator[Union[str, float]]:
 
             # add padding
             if isinstance(p1, float):
-                yield ''
+                yield ""
 
         # checking p2 is `.[0-9]+` or not
-        elif c == '.' and len(p2) > 1 and p2[1].isdigit():
+        elif c == "." and len(p2) > 1 and p2[1].isdigit():
             # p2 should be `.[0-9]+`
             # so converting to float
             p2 = float(p2)
@@ -89,74 +89,89 @@ def _sort_algo(data: List[str]) -> Iterator[Union[str, float]]:
         p1 = p2
 
 
-def get_file_id_of_media(message: 'userge.Message') -> Optional[str]:
-    """ get file_id """
-    file_ = message.audio or message.animation or message.photo \
-        or message.sticker or message.voice or message.video_note \
-        or message.video or message.document
+def get_file_id_of_media(message: "userge.Message") -> Optional[str]:
+    """get file_id"""
+    file_ = (
+        message.audio
+        or message.animation
+        or message.photo
+        or message.sticker
+        or message.voice
+        or message.video_note
+        or message.video
+        or message.document
+    )
     if file_:
         return file_.file_id
     return None
 
 
 def humanbytes(size: float) -> str:
-    """ humanize size """
+    """humanize size"""
     if not size:
         return "0 B"
     power = 1024
     t_n = 0
     power_dict = {
-        0: '',
-        1: 'Ki',
-        2: 'Mi',
-        3: 'Gi',
-        4: 'Ti',
-        5: 'Pi',
-        6: 'Ei',
-        7: 'Zi',
-        8: 'Yi'}
+        0: "",
+        1: "Ki",
+        2: "Mi",
+        3: "Gi",
+        4: "Ti",
+        5: "Pi",
+        6: "Ei",
+        7: "Zi",
+        8: "Yi",
+    }
     while size > power:
         size /= power
         t_n += 1
-    return "{:.2f} {}B".format(size, power_dict[t_n])  # pylint: disable=consider-using-f-string
+    return "{:.2f} {}B".format(
+        size, power_dict[t_n]
+    )  # pylint: disable=consider-using-f-string
 
 
 def time_formatter(seconds: float) -> str:
-    """ humanize time """
+    """humanize time"""
     minutes, seconds = divmod(int(seconds), 60)
     hours, minutes = divmod(minutes, 60)
     days, hours = divmod(hours, 24)
-    tmp = ((str(days) + "d, ") if days else "") + \
-        ((str(hours) + "h, ") if hours else "") + \
-        ((str(minutes) + "m, ") if minutes else "") + \
-        ((str(seconds) + "s, ") if seconds else "")
+    tmp = (
+        ((str(days) + "d, ") if days else "")
+        + ((str(hours) + "h, ") if hours else "")
+        + ((str(minutes) + "m, ") if minutes else "")
+        + ((str(seconds) + "s, ") if seconds else "")
+    )
     return tmp[:-2]
 
 
 async def runcmd(cmd: str) -> Tuple[str, str, int, int]:
-    """ run command in terminal """
+    """run command in terminal"""
     args = shlex.split(cmd)
-    process = await asyncio.create_subprocess_exec(*args,
-                                                   stdout=asyncio.subprocess.PIPE,
-                                                   stderr=asyncio.subprocess.PIPE)
+    process = await asyncio.create_subprocess_exec(
+        *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+    )
     stdout, stderr = await process.communicate()
-    return (stdout.decode('utf-8', 'replace').strip(),
-            stderr.decode('utf-8', 'replace').strip(),
-            process.returncode,
-            process.pid)
+    return (
+        stdout.decode("utf-8", "replace").strip(),
+        stderr.decode("utf-8", "replace").strip(),
+        process.returncode,
+        process.pid,
+    )
 
 
-async def take_screen_shot(video_file: str, duration: int, path: str = '') -> Optional[str]:
-    """ take a screenshot """
+async def take_screen_shot(
+    video_file: str, duration: int, path: str = ""
+) -> Optional[str]:
+    """take a screenshot"""
     _LOG.info(
-        'Extracting a frame from %s ||| Video duration => %s',
-        video_file,
-        duration)
+        "Extracting a frame from %s ||| Video duration => %s", video_file, duration
+    )
 
     ttl = duration // 2
     thumb_image_path = path or join(
-        userge.config.Dynamic.DOWN_PATH,
-        f"{basename(video_file)}.jpg")
+        userge.config.Dynamic.DOWN_PATH, f"{basename(video_file)}.jpg"
+    )
     command = f'''ffmpeg -ss {ttl} -i "{video_file}" -vframes 1 "{thumb_image_path}"'''
 
     err = (await runcmd(command))[1]
@@ -166,9 +181,8 @@ async def take_screen_shot(video_file: str, duration: int, path: str = '') -> Op
     return thumb_image_path if exists(thumb_image_path) else None
 
 
-def parse_buttons(
-        markdown_note: str) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
-    """ markdown_note to string and buttons """
+def parse_buttons(markdown_note: str) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
+    """markdown_note to string and buttons"""
     prev = 0
     note_data = ""
     buttons: List[Tuple[str, str, bool]] = []
@@ -179,12 +193,8 @@ def parse_buttons(
             n_escapes += 1
             to_check -= 1
         if n_escapes % 2 == 0:
-            buttons.append(
-                (match.group(2),
-                 match.group(3),
-                 bool(
-                    match.group(4))))
-            note_data += markdown_note[prev:match.start(1)]
+            buttons.append((match.group(2), match.group(3), bool(match.group(4))))
+            note_data += markdown_note[prev : match.start(1)]
             prev = match.end(1)
         else:
             note_data += markdown_note[prev:to_check]
@@ -215,9 +225,9 @@ def is_command(cmd: str) -> bool:
 
 
 def extract_entities(
-        message: Message, typeofentity: List[enums.MessageEntityType]) -> List[Union[str, User]]:
-    """ gets a message and returns a list of entity_type in the message
-    """
+    message: Message, typeofentity: List[enums.MessageEntityType]
+) -> List[Union[str, User]]:
+    """gets a message and returns a list of entity_type in the message"""
     tero = []
     entities = message.entities or message.caption_entities or []
     text = message.text or message.caption or ""
@@ -242,7 +252,7 @@ def extract_entities(
         ]:
             offset = entity.offset
             length = entity.length
-            url = text[offset:offset + length]
+            url = text[offset : offset + length]
 
         elif entity.type == enums.MessageEntityType.TEXT_LINK:
             url = entity.url
@@ -256,7 +266,7 @@ def extract_entities(
 
 
 def get_custom_import_re(req_module, re_raise=True) -> Any:
-    """ import custom modules dynamically """
+    """import custom modules dynamically"""
     try:
         return importlib.import_module(req_module)
     except (ModuleNotFoundError, ImportError):

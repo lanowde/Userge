@@ -8,7 +8,7 @@
 #
 # All rights reserved.
 
-__all__ = ['Restart']
+__all__ = ["Restart"]
 
 from loader.userge.api import restart
 from userge import logging
@@ -20,6 +20,6 @@ _LOG = logging.getLogger(__name__)
 class Restart(RawClient):  # pylint: disable=missing-class-docstring
     @staticmethod
     async def restart(hard: bool = False, **_) -> None:
-        """ Restart the Userge """
+        """Restart the Userge"""
         _LOG.info(f"Restarting Userge [{'HARD' if hard else 'SOFT'}]")
         restart(hard)

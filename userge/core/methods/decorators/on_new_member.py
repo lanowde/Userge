@@ -8,7 +8,7 @@
 #
 # All rights reserved.
 
-__all__ = ['OnNewMember']
+__all__ = ["OnNewMember"]
 
 from pyrogram import filters
 from pyrogram.filters import Filter as RawFilter
@@ -17,12 +17,14 @@ from . import RawDecorator
 
 
 class OnNewMember(RawDecorator):  # pylint: disable=missing-class-docstring
-    def on_new_member(self,
-                      welcome_chats: RawFilter,
-                      group: int = -2,
-                      allow_via_bot: bool = True,
-                      check_client: bool = True,
-                      check_downpath: bool = False) -> RawDecorator._PYRORETTYPE:
+    def on_new_member(
+        self,
+        welcome_chats: RawFilter,
+        group: int = -2,
+        allow_via_bot: bool = True,
+        check_client: bool = True,
+        check_downpath: bool = False,
+    ) -> RawDecorator._PYRORETTYPE:
         """\nDecorator for handling new members
 
         Parameters:
@@ -44,5 +46,8 @@ class OnNewMember(RawDecorator):  # pylint: disable=missing-class-docstring
         """
         return self.on_filters(
             filters=filters.group & filters.new_chat_members & welcome_chats,
-            group=group, allow_via_bot=allow_via_bot, check_client=check_client,
-            check_downpath=check_downpath)
+            group=group,
+            allow_via_bot=allow_via_bot,
+            check_client=check_client,
+            check_downpath=check_downpath,
+        )

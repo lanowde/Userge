@@ -8,7 +8,7 @@
 #
 # All rights reserved.
 
-__all__ = ['GetUserDict']
+__all__ = ["GetUserDict"]
 
 from typing import Dict, Union
 
@@ -22,15 +22,21 @@ class GetUserDict(RawClient):  # pylint: disable=missing-class-docstring
         `flname`(full name), `uname`(username) and `mention`.
         """
         user_obj = await self.get_users(user_id)
-        fname = (user_obj.first_name or '').strip()
-        lname = (user_obj.last_name or '').strip()
-        username = (user_obj.username or '').strip()
+        fname = (user_obj.first_name or "").strip()
+        lname = (user_obj.last_name or "").strip()
+        username = (user_obj.username or "").strip()
         if fname and lname:
-            full_name = fname + ' ' + lname
+            full_name = fname + " " + lname
         elif fname or lname:
             full_name = fname or lname
         else:
             full_name = "user"
         mention = f"[{username or full_name}](tg://user?id={user_id})"
-        return {'id': user_obj.id, 'fname': fname, 'lname': lname,
-                'flname': full_name, 'uname': username, 'mention': mention}
+        return {
+            "id": user_obj.id,
+            "fname": fname,
+            "lname": lname,
+            "flname": full_name,
+            "uname": username,
+            "mention": mention,
+        }

@@ -8,7 +8,7 @@
 #
 # All rights reserved.
 
-__all__ = ['RawDecorator']
+__all__ = ["RawDecorator"]
 
 import os
 import time
@@ -29,7 +29,7 @@ from ... import types, client as _client  # pylint: disable=unused-import
 
 _LOG = logging.getLogger(__name__)
 
-_PYROFUNC = Callable[['types.bound.Message'], Any]
+_PYROFUNC = Callable[["types.bound.Message"], Any]
 _TASK_1_START_TO = time.time()
 _TASK_2_START_TO = time.time()
 
@@ -53,10 +53,11 @@ async def _update_u_cht(r_m: RawMessage) -> Optional[ChatMember]:
         # is this required?
         # user.privileges.can_all = None
         # if user.status == enums.ChatMemberStatus.OWNER:
-            # user.privileges.can_all = True
+        # user.privileges.can_all = True
         if user.status in (
-                enums.ChatMemberStatus.OWNER,
-                enums.ChatMemberStatus.ADMINISTRATOR):
+            enums.ChatMemberStatus.OWNER,
+            enums.ChatMemberStatus.ADMINISTRATOR,
+        ):
             _U_AD_CHT[r_m.chat.id] = user
         else:
             _U_NM_CHT[r_m.chat.id] = user
@@ -95,14 +96,16 @@ def _clear_cht() -> None:
 
 async def _init(r_m: RawMessage) -> None:
     if r_m.from_user and (
-        r_m.from_user.is_self or (
-            r_m.from_user.id in sudo.USERS) or (
-                r_m.from_user.id in config.OWNER_ID)):
+        r_m.from_user.is_self
+        or (r_m.from_user.id in sudo.USERS)
+        or (r_m.from_user.id in config.OWNER_ID)
+    ):
         RawClient.LAST_OUTGOING_TIME = time.time()
 
 
-async def _raise_func(r_c: Union['_client.Userge', '_client.UsergeBot'],
-                      r_m: RawMessage, text: str) -> None:
+async def _raise_func(
+    r_c: Union["_client.Userge", "_client.UsergeBot"], r_m: RawMessage, text: str
+) -> None:
     # pylint: disable=protected-access
     if r_m.chat.type in (enums.ChatType.PRIVATE, enums.ChatType.BOT):
         await r_m.reply(f"< **ERROR**: {text} ! >")
@@ -145,8 +148,9 @@ async def _get_lock(key: str) -> asyncio.Lock:
     return _CH_LKS[key]
 
 
-async def _bot_is_present(r_c: Union['_client.Userge', '_client.UsergeBot'],
-                          r_m: RawMessage, is_bot: bool) -> bool:
+async def _bot_is_present(
+    r_c: Union["_client.Userge", "_client.UsergeBot"], r_m: RawMessage, is_bot: bool
+) -> bool:
     global _TASK_2_START_TO  # pylint: disable=global-statement
     if is_bot:
         if r_m.chat.id not in _B_CMN_CHT:
@@ -164,16 +168,20 @@ async def _bot_is_present(r_c: Union['_client.Userge', '_client.UsergeBot'],
     return r_m.chat.id in _B_CMN_CHT
 
 
-async def _both_are_admins(r_c: Union['_client.Userge', '_client.UsergeBot'],
-                           r_m: RawMessage, is_bot: bool) -> bool:
+async def _both_are_admins(
+    r_c: Union["_client.Userge", "_client.UsergeBot"], r_m: RawMessage, is_bot: bool
+) -> bool:
     if not await _bot_is_present(r_c, r_m, is_bot):
         return False
     return r_m.chat.id in _B_AD_CHT and r_m.chat.id in _U_AD_CHT
 
 
-async def _both_have_perm(flt: Union['types.raw.Command', 'types.raw.Filter'],
-                          r_c: Union['_client.Userge', '_client.UsergeBot'],
-                          r_m: RawMessage, is_bot: bool) -> bool:
+async def _both_have_perm(
+    flt: Union["types.raw.Command", "types.raw.Filter"],
+    r_c: Union["_client.Userge", "_client.UsergeBot"],
+    r_m: RawMessage,
+    is_bot: bool,
+) -> bool:
     if not await _bot_is_present(r_c, r_m, is_bot):
         return False
     try:
@@ -185,73 +193,98 @@ async def _both_have_perm(flt: Union['types.raw.Command', 'types.raw.Filter'],
         return False
 
     if flt.check_change_info_perm and not (
-            (user.privileges and bot.privileges) and (
-            user.privileges.can_change_info and bot.privileges.can_change_info)):
+        (user.privileges and bot.privileges)
+        and (user.privileges.can_change_info and bot.privileges.can_change_info)
+    ):
         return False
-    if flt.check_edit_perm and not ((user.privileges and bot.privileges) and (
-            user.privileges.can_edit_messages and bot.privileges.can_edit_messages)):
+    if flt.check_edit_perm and not (
+        (user.privileges and bot.privileges)
+        and (user.privileges.can_edit_messages and bot.privileges.can_edit_messages)
+    ):
         return False
-    if flt.check_delete_perm and not ((user.privileges and bot.privileges) and (
-            user.privileges.can_delete_messages and bot.privileges.can_delete_messages)):
+    if flt.check_delete_perm and not (
+        (user.privileges and bot.privileges)
+        and (user.privileges.can_delete_messages and bot.privileges.can_delete_messages)
+    ):
         return False
-    if flt.check_restrict_perm and not ((user.privileges and bot.privileges) and (
-            user.privileges.can_restrict_members and bot.privileges.can_restrict_members)):
+    if flt.check_restrict_perm and not (
+        (user.privileges and bot.privileges)
+        and (
+            user.privileges.can_restrict_members and bot.privileges.can_restrict_members
+        )
+    ):
         return False
-    if flt.check_promote_perm and not ((user.privileges and bot.privileges) and (
-            user.privileges.can_promote_members and bot.privileges.can_promote_members)):
+    if flt.check_promote_perm and not (
+        (user.privileges and bot.privileges)
+        and (user.privileges.can_promote_members and bot.privileges.can_promote_members)
+    ):
         return False
-    if flt.check_invite_perm and not ((user.privileges and bot.privileges) and (
-            user.privileges.can_invite_users and bot.privileges.can_invite_users)):
+    if flt.check_invite_perm and not (
+        (user.privileges and bot.privileges)
+        and (user.privileges.can_invite_users and bot.privileges.can_invite_users)
+    ):
         return False
-    if flt.check_pin_perm and not ((user.privileges and bot.privileges) and (
-            user.privileges.can_pin_messages and bot.privileges.can_pin_messages)):
+    if flt.check_pin_perm and not (
+        (user.privileges and bot.privileges)
+        and (user.privileges.can_pin_messages and bot.privileges.can_pin_messages)
+    ):
         return False
     return True
 
 
 class RawDecorator(RawClient):
-    """ userge raw decorator """
+    """userge raw decorator"""
+
     _PYRORETTYPE = Callable[[_PYROFUNC], _PYROFUNC]
 
     def __init__(self, **kwargs) -> None:
         self.manager = types.new.Manager(self)
         super().__init__(**kwargs)
 
-    def add_task(self, task: Callable[[], Awaitable[Any]]) -> Callable[[], Awaitable[Any]]:
-        """ add a background task which is attached to this plugin. """
+    def add_task(
+        self, task: Callable[[], Awaitable[Any]]
+    ) -> Callable[[], Awaitable[Any]]:
+        """add a background task which is attached to this plugin."""
         self.manager.get_plugin(task.__module__).add_task(task)
         return task
 
     def on_start(self, callback: Callable[[], Awaitable[Any]]) -> None:
-        """ set a callback to calls when the plugin is loaded """
+        """set a callback to calls when the plugin is loaded"""
         self.manager.get_plugin(callback.__module__).set_on_start_callback(callback)
 
     def on_stop(self, callback: Callable[[], Awaitable[Any]]) -> None:
-        """ set a callback to calls when the plugin is unloaded """
+        """set a callback to calls when the plugin is unloaded"""
         self.manager.get_plugin(callback.__module__).set_on_stop_callback(callback)
 
     def on_exit(self, callback: Callable[[], Awaitable[Any]]) -> None:
-        """ set a callback to calls when the userge is exiting """
+        """set a callback to calls when the userge is exiting"""
         self.manager.get_plugin(callback.__module__).set_on_exit_callback(callback)
 
-    def on_filters(self, filters: RawFilter, group: int = 0,
-                   **kwargs: Union[str, bool]) -> 'RawDecorator._PYRORETTYPE':
-        """ abstract on filter method """
+    def on_filters(
+        self, filters: RawFilter, group: int = 0, **kwargs: Union[str, bool]
+    ) -> "RawDecorator._PYRORETTYPE":
+        """abstract on filter method"""
 
-    def _build_decorator(self,
-                         flt: Union['types.raw.Command',
-                                    'types.raw.Filter'],
-                         **kwargs: Union[str, bool]) -> 'RawDecorator._PYRORETTYPE':
+    def _build_decorator(
+        self,
+        flt: Union["types.raw.Command", "types.raw.Filter"],
+        **kwargs: Union[str, bool],
+    ) -> "RawDecorator._PYRORETTYPE":
         def decorator(func: _PYROFUNC) -> _PYROFUNC:
-            async def template(r_c: Union['_client.Userge', '_client.UsergeBot'],
-                               r_m: RawMessage) -> None:
+            async def template(
+                r_c: Union["_client.Userge", "_client.UsergeBot"], r_m: RawMessage
+            ) -> None:
                 await self.manager.wait()
 
                 if system.Dynamic.DISABLED_ALL and r_m.chat.id != config.LOG_CHANNEL_ID:
                     raise StopPropagation
                 if r_m.chat and r_m.chat.id in system.DISABLED_CHATS:
                     raise StopPropagation
-                if config.IGNORE_VERIFIED_CHATS and r_m.from_user and r_m.from_user.is_verified:
+                if (
+                    config.IGNORE_VERIFIED_CHATS
+                    and r_m.from_user
+                    and r_m.from_user.is_verified
+                ):
                     raise StopPropagation
 
                 await _init(r_m)
@@ -274,52 +307,69 @@ class RawDecorator(RawClient):
                         return
                     if c_m.status != enums.ChatMemberStatus.OWNER:
                         if flt.check_change_info_perm and not (
-                                c_m.privileges and c_m.privileges.can_change_info):
+                            c_m.privileges and c_m.privileges.can_change_info
+                        ):
                             if isinstance(flt, types.raw.Command):
                                 await _raise("`required permission [change_info]`")
                             return
                         if flt.check_edit_perm and not (
-                                c_m.privileges and c_m.privileges.can_edit_messages):
+                            c_m.privileges and c_m.privileges.can_edit_messages
+                        ):
                             if isinstance(flt, types.raw.Command):
                                 await _raise("`required permission [edit_messages]`")
                             return
                         if flt.check_delete_perm and not (
-                                c_m.privileges and c_m.privileges.can_delete_messages):
+                            c_m.privileges and c_m.privileges.can_delete_messages
+                        ):
                             if isinstance(flt, types.raw.Command):
                                 await _raise("`required permission [delete_messages]`")
                             return
                         if flt.check_restrict_perm and not (
-                                c_m.privileges and c_m.privileges.can_restrict_members):
+                            c_m.privileges and c_m.privileges.can_restrict_members
+                        ):
                             if isinstance(flt, types.raw.Command):
                                 if is_admin:
-                                    await _raise("`required permission [restrict_members]`")
+                                    await _raise(
+                                        "`required permission [restrict_members]`"
+                                    )
                                 else:
                                     await _raise("`chat admin required`")
                             return
                         if flt.check_promote_perm and not (
-                                c_m.privileges and c_m.privileges.can_promote_members):
+                            c_m.privileges and c_m.privileges.can_promote_members
+                        ):
                             if isinstance(flt, types.raw.Command):
                                 if is_admin:
-                                    await _raise("`required permission [promote_members]`")
+                                    await _raise(
+                                        "`required permission [promote_members]`"
+                                    )
                                 else:
                                     await _raise("`chat admin required`")
                             return
                         if flt.check_invite_perm and not (
-                                c_m.privileges and c_m.privileges.can_invite_users):
+                            c_m.privileges and c_m.privileges.can_invite_users
+                        ):
                             if isinstance(flt, types.raw.Command):
                                 await _raise("`required permission [invite_users]`")
                             return
                         if flt.check_pin_perm and not (
-                                c_m.privileges and c_m.privileges.can_pin_messages):
+                            c_m.privileges and c_m.privileges.can_pin_messages
+                        ):
                             if isinstance(flt, types.raw.Command):
                                 await _raise("`required permission [pin_messages]`")
                             return
 
                 if RawClient.DUAL_MODE and (
-                    flt.check_client or (
-                        r_m.from_user and r_m.from_user.id != RawClient.USER_ID
-                        and (r_m.from_user.id in config.OWNER_ID
-                             or r_m.from_user.id in sudo.USERS))):
+                    flt.check_client
+                    or (
+                        r_m.from_user
+                        and r_m.from_user.id != RawClient.USER_ID
+                        and (
+                            r_m.from_user.id in config.OWNER_ID
+                            or r_m.from_user.id in sudo.USERS
+                        )
+                    )
+                ):
                     cond = True
                     async with await _get_lock(str(flt)):
                         if flt.only_admins:
@@ -331,25 +381,28 @@ class RawDecorator(RawClient):
                                 if isinstance(r_c, _client.UsergeBot):
                                     return
                             elif await _bot_is_present(r_c, r_m, is_bot) and isinstance(
-                                    r_c, _client.Userge):
+                                r_c, _client.Userge
+                            ):
                                 return
 
-                if flt.check_downpath and not os.path.isdir(
-                        config.Dynamic.DOWN_PATH):
+                if flt.check_downpath and not os.path.isdir(config.Dynamic.DOWN_PATH):
                     os.makedirs(config.Dynamic.DOWN_PATH)
 
                 try:
-                    await func(types.bound.Message.parse(
-                        r_c, r_m, module=module, **kwargs))
+                    await func(
+                        types.bound.Message.parse(r_c, r_m, module=module, **kwargs)
+                    )
                 except (StopPropagation, ContinuePropagation):  # pylint: disable=W0706
                     raise
                 except Exception as f_e:  # pylint: disable=broad-except
                     _LOG.exception(f_e)
-                    await self._channel.log(f"**PLUGIN** : `{module}`\n"
-                                            f"**FUNCTION** : `{func.__name__}`\n"
-                                            f"**ERROR** : `{f_e or None}`\n"
-                                            f"```python\n{format_exc().strip()}```",
-                                            "TRACEBACK")
+                    await self._channel.log(
+                        f"**PLUGIN** : `{module}`\n"
+                        f"**FUNCTION** : `{func.__name__}`\n"
+                        f"**ERROR** : `{f_e or None}`\n"
+                        f"```python\n{format_exc().strip()}```",
+                        "TRACEBACK",
+                    )
                 finally:
                     if flt.propagate:
                         raise ContinuePropagation
@@ -362,4 +415,5 @@ class RawDecorator(RawClient):
             self.manager.get_plugin(module).add(flt)
 
             return func
+
         return decorator

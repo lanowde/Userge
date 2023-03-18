@@ -8,7 +8,7 @@
 #
 # All rights reserved.
 
-__all__ = ['Decorators']
+__all__ = ["Decorators"]
 
 from .raw_decorator import RawDecorator  # noqa
 from .on_cmd import OnCmd
@@ -18,4 +18,4 @@ from .on_new_member import OnNewMember
 
 
 class Decorators(OnCmd, OnFilters, OnLeftMember, OnNewMember):
-    """ methods.decorators """
+    """methods.decorators"""

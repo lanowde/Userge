@@ -8,7 +8,7 @@
 #
 # All rights reserved.
 
-__all__ = ['Manager']
+__all__ = ["Manager"]
 
 import asyncio
 import logging
@@ -24,30 +24,31 @@ _FLT = Union[Filter, Command]
 
 
 class Manager:
-    """ manager for userge """
-    def __init__(self, client: '_client.Userge') -> None:
+    """manager for userge"""
+
+    def __init__(self, client: "_client.Userge") -> None:
         self._client = client
         self._event = asyncio.Event()
         self.plugins: Dict[str, Plugin] = {}
 
     @property
     def commands(self) -> Dict[str, Command]:
-        """ returns all commands """
+        """returns all commands"""
         return {cmd.name: cmd for plg in self.plugins.values() for cmd in plg.commands}
 
     @property
     def filters(self) -> Dict[str, Filter]:
-        """ returns all filters """
+        """returns all filters"""
         return {flt.name: flt for plg in self.plugins.values() for flt in plg.filters}
 
     @property
     def loaded_commands(self) -> Dict[str, Command]:
-        """ returns all loaded commands """
+        """returns all loaded commands"""
         return {cmd.name: cmd for cmd in self.commands.values() if cmd.loaded}
 
     @property
     def unloaded_commands(self) -> List[Command]:
-        """ returns all unloaded commands """
+        """returns all unloaded commands"""
         return [cmd for cmd in self.commands.values() if not cmd.loaded]
 
     @property
@@ -57,12 +58,12 @@ class Manager:
 
     @property
     def unloaded_filters(self) -> List[Filter]:
-        """ returns all unloaded filters """
+        """returns all unloaded filters"""
         return [flt for flt in self.filters.values() if not flt.loaded]
 
     @property
     def loaded_plugins(self) -> Dict[str, Plugin]:
-        """ returns all loaded plugins """
+        """returns all loaded plugins"""
         return {plg.name: plg for plg in self.plugins.values() if plg.loaded}
 
     @property
@@ -75,20 +76,20 @@ class Manager:
         return plg
 
     def get_plugin(self, module_name: str) -> Plugin:
-        """ get plugin from manager """
+        """get plugin from manager"""
         # __main__
-        name = module_name.split('.')[-2]
+        name = module_name.split(".")[-2]
         if name in self.plugins:
             return self.plugins[name]
 
-        cat = module_name.split('.')[-3]
+        cat = module_name.split(".")[-3]
 
         return self._get_plugin(cat, name)
 
     def update_plugin(self, module_name: str, doc: Optional[str]) -> None:
-        """ get plugin from name """
+        """get plugin from name"""
         # __init__
-        cat, name = module_name.split('.')[-2:]
+        cat, name = module_name.split(".")[-2:]
         if name not in self.plugins:
             self._get_plugin(cat, name)
 
@@ -96,7 +97,7 @@ class Manager:
             self.plugins[name].doc = doc.strip()
 
     def get_plugins(self) -> Dict[str, List[str]]:
-        """ returns categorized enabled plugins """
+        """returns categorized enabled plugins"""
         ret_dict: Dict[str, List[str]] = {}
 
         for plg in self.loaded_plugins.values():
@@ -108,7 +109,7 @@ class Manager:
         return ret_dict
 
     def get_all_plugins(self) -> Dict[str, List[str]]:
-        """ returns all categorized plugins """
+        """returns all categorized plugins"""
         ret_dict: Dict[str, List[str]] = {}
 
         for plg in self.plugins.values():
@@ -120,7 +121,7 @@ class Manager:
         return ret_dict
 
     async def load_commands(self, commands: List[str]) -> List[str]:
-        """ load list of commands """
+        """load list of commands"""
         loaded: List[str] = []
 
         for cmd_name in set(commands).intersection(set(self.commands)):
@@ -135,7 +136,7 @@ class Manager:
         return loaded
 
     async def unload_commands(self, commands: List[str]) -> List[str]:
-        """ unload list of commands """
+        """unload list of commands"""
         unloaded: List[str] = []
 
         for cmd_name in set(commands).intersection(set(self.commands)):
@@ -150,7 +151,7 @@ class Manager:
         return unloaded
 
     async def load_filters(self, filters: List[str]) -> List[str]:
-        """ load list of filters """
+        """load list of filters"""
         loaded: List[str] = []
 
         for flt_name in set(filters).intersection(set(self.filters)):
@@ -165,7 +166,7 @@ class Manager:
         return loaded
 
     async def unload_filters(self, filters: List[str]) -> List[str]:
-        """ unload list of filters """
+        """unload list of filters"""
         unloaded: List[str] = []
 
         for flt_name in set(filters).intersection(set(self.filters)):
@@ -180,7 +181,7 @@ class Manager:
         return unloaded
 
     async def load_plugins(self, plugins: List[str]) -> Dict[str, List[str]]:
-        """ load list of plugins """
+        """load list of plugins"""
         loaded: Dict[str, List[str]] = {}
 
         for plg_name in set(plugins).intersection(set(self.plugins)):
@@ -195,7 +196,7 @@ class Manager:
         return loaded
 
     async def unload_plugins(self, plugins: List[str]) -> Dict[str, List[str]]:
-        """ unload list of plugins """
+        """unload list of plugins"""
         unloaded: Dict[str, List[str]] = {}
 
         for plg_name in set(plugins).intersection(set(self.plugins)):
@@ -267,16 +268,16 @@ class Manager:
 
     async def start(self) -> None:
         self._event.clear()
-        await self._do_plugins('start')
+        await self._do_plugins("start")
         self._event.set()
 
     async def stop(self) -> None:
         self._event.clear()
-        await self._do_plugins('stop')
+        await self._do_plugins("stop")
         self._event.set()
 
     async def exit(self) -> None:
-        await self._do_plugins('exit')
+        await self._do_plugins("exit")
         self.plugins.clear()
 
     def clear(self) -> None:
@@ -287,7 +288,7 @@ class Manager:
 
     @staticmethod
     async def clear_unloaded() -> bool:
-        """ clear all unloaded filters in database """
+        """clear all unloaded filters in database"""
         return await _clear_db()
 
 
@@ -301,7 +302,7 @@ async def _init_unloaded() -> None:
 
     if not _FLAG:
         async for flt in _UNLOADED_FILTERS.find():
-            _UNLOADED.append(flt['filter'])
+            _UNLOADED.append(flt["filter"])
 
         _FLAG = True
 
@@ -323,7 +324,7 @@ async def _load(names: List[str]) -> None:
             to_delete.append(name)
 
     if to_delete:
-        await _UNLOADED_FILTERS.delete_many({'filter': {'$in': to_delete}})
+        await _UNLOADED_FILTERS.delete_many({"filter": {"$in": to_delete}})
 
 
 async def _unload(names: List[str]) -> None:

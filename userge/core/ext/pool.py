@@ -8,7 +8,7 @@
 #
 # All rights reserved.
 
-__all__ = ['submit_thread', 'run_in_thread']
+__all__ = ["submit_thread", "run_in_thread"]
 
 import asyncio
 import atexit
@@ -25,16 +25,18 @@ _MAX = _EXECUTOR._max_workers
 
 
 def submit_thread(func: Callable[..., Any], *args: Any, **kwargs: Any) -> Future:
-    """ submit thread to thread pool """
+    """submit thread to thread pool"""
     return _EXECUTOR.submit(func, *args, **kwargs)
 
 
 def run_in_thread(func: Callable[..., Any]) -> Callable[..., Any]:
-    """ run in a thread """
+    """run in a thread"""
+
     @wraps(func)
     async def wrapper(*args: Any, **kwargs: Any) -> Any:
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(_EXECUTOR, partial(func, *args, **kwargs))
+
     return wrapper
 
 
