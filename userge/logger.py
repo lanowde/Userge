@@ -18,7 +18,6 @@ logging.basicConfig(
     datefmt="%d %b %H:%M:%S",
     handlers=[
         logging.FileHandler("logs/userge.log", mode="w", encoding="utf-8"),
-        logging.RotatingFileHandler("logs/userge.log", maxBytes=20480, backupCount=10),
         logging.StreamHandler(),
     ],
 )
