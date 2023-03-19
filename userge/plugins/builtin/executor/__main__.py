@@ -254,7 +254,12 @@ async def eval_(message: Message):
             await msg.delete()
 
     _g, _l = _context(
-        context_type, userge=userge, message=message, replied=message.reply_to_message
+        context_type,
+        userge=userge,
+        message=message,
+        replied=message.reply_to_message,
+        chat=message.chat.id,
+        m=message,
     )
     l_d = {}
     try:

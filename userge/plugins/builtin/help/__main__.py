@@ -45,6 +45,7 @@ async def _init() -> None:
     data = await SAVED_SETTINGS.find_one({"_id": "CURRENT_CLIENT"})
     if data:
         config.Dynamic.USE_USER_FOR_CLIENT_CHECKS = bool(data["is_user"])
+        config.Dynamic.USER_IS_PREFERRED = bool(data["is_user"])
 
 
 @userge.on_cmd(
@@ -143,9 +144,14 @@ async def helpme(
 
 if userge.has_bot:
 
-    def check_owner(func):
+    from userge.plugins.builtin.sudo import USERS as sudoers, Dynamic as sudo_dynamic
+
+    def check_owner_or_sudo(func):
         async def wrapper(_, c_q: CallbackQuery):
-            if c_q.from_user and c_q.from_user.id in config.OWNER_ID:
+            if c_q.from_user and (
+                (c_q.from_user.id in config.OWNER_ID)
+                or (sudo_dynamic and c_q.from_user.id in sudoers)
+            ):
                 try:
                     await func(c_q)
                 except MessageNotModified:
@@ -196,7 +202,7 @@ if userge.has_bot:
     @userge.bot.on_callback_query(
         filters=filters.regex(pattern=r"\((.+)\)(next|prev)\((\d+)\)")
     )
-    @check_owner
+    @check_owner_or_sudo
     async def callback_next_prev(callback_query: CallbackQuery):
         cur_pos = str(callback_query.matches[0].group(1))
         n_or_p = str(callback_query.matches[0].group(2))
@@ -227,7 +233,7 @@ if userge.has_bot:
         )
 
     @userge.bot.on_callback_query(filters=filters.regex(pattern=r"back\((.+)\)"))
-    @check_owner
+    @check_owner_or_sudo
     async def callback_back(callback_query: CallbackQuery):
         cur_pos = str(callback_query.matches[0].group(1))
         pos_list = cur_pos.split("|")
@@ -249,7 +255,7 @@ if userge.has_bot:
         )
 
     @userge.bot.on_callback_query(filters=filters.regex(pattern=r"enter\((.+)\)"))
-    @check_owner
+    @check_owner_or_sudo
     async def callback_enter(callback_query: CallbackQuery):
         cur_pos = str(callback_query.matches[0].group(1))
         pos_list = cur_pos.split("|")
@@ -268,7 +274,7 @@ if userge.has_bot:
     @userge.bot.on_callback_query(
         filters=filters.regex(pattern=r"((?:un)?load)\((.+)\)")
     )
-    @check_owner
+    @check_owner_or_sudo
     async def callback_manage(callback_query: CallbackQuery):
         task = str(callback_query.matches[0].group(1))
         cur_pos = str(callback_query.matches[0].group(2))
@@ -293,7 +299,7 @@ if userge.has_bot:
         )
 
     @userge.bot.on_callback_query(filters=filters.regex(pattern=r"^mm$"))
-    @check_owner
+    @check_owner_or_sudo
     async def callback_mm(callback_query: CallbackQuery):
         await callback_query.edit_message_text(
             "🖥 **Userge Main Menu** 🖥",
@@ -301,7 +307,7 @@ if userge.has_bot:
         )
 
     @userge.bot.on_callback_query(filters=filters.regex(pattern=r"^chgclnt$"))
-    @check_owner
+    @check_owner_or_sudo
     async def callback_chgclnt(callback_query: CallbackQuery):
         if not userge.dual_mode:
             return await callback_query.answer(
@@ -321,7 +327,7 @@ if userge.has_bot:
         )
 
     @userge.bot.on_callback_query(filters=filters.regex(pattern=r"refresh\((.+)\)"))
-    @check_owner
+    @check_owner_or_sudo
     async def callback_exit(callback_query: CallbackQuery):
         cur_pos = str(callback_query.matches[0].group(1))
         pos_list = cur_pos.split("|")

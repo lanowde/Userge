@@ -11,14 +11,14 @@
 __all__ = ["logging"]
 
 import logging
-from logging.handlers import RotatingFileHandler
 
 logging.basicConfig(
     level=logging.INFO,
-    format="[%(asctime)s - %(levelname)s] - %(name)s - %(message)s",
-    datefmt="%d-%b-%y %H:%M:%S",
+    format="%(asctime)s [%(levelname)s] • %(name)s - %(message)s",
+    datefmt="%d %b %H:%M:%S",
     handlers=[
-        RotatingFileHandler("logs/userge.log", maxBytes=20480, backupCount=10),
+        logging.FileHandler("logs/userge.log", mode="w", encoding="utf-8"),
+        logging.RotatingFileHandler("logs/userge.log", maxBytes=20480, backupCount=10),
         logging.StreamHandler(),
     ],
 )

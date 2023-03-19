@@ -8,6 +8,8 @@
 #
 # All rights reserved.
 
+from ._custom import *
+
 from pyrogram import filters  # noqa
 
 from .database import get_collection  # noqa
