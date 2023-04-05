@@ -58,4 +58,4 @@ class Dynamic:
     MSG_DELETE_TIMEOUT = 120
     EDIT_SLEEP_TIMEOUT = 10
 
-    USER_IS_PREFERRED = False
+    USER_IS_PREFERRED = True

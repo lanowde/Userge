@@ -20,6 +20,7 @@ import traceback
 from contextlib import contextmanager
 from enum import Enum
 from getpass import getuser
+from shutil import which
 from typing import Awaitable, Any, Callable, Dict, Optional, Tuple, Iterable
 
 import aiofiles
@@ -520,6 +521,8 @@ class Term:
         kwargs = dict(stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
         if setsid:
             kwargs["preexec_fn"] = setsid
+        if sh := which(os.environ.get("USERGE_SHELL", "bash")):
+            kwargs["executable"] = sh
         process = await asyncio.create_subprocess_shell(cmd, **kwargs)
         t_obj = cls(process)
         t_obj._start()
