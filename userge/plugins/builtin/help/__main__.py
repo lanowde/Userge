@@ -143,7 +143,6 @@ async def helpme(
 
 
 if userge.has_bot:
-
     from userge.plugins.builtin.sudo import USERS as sudoers, Dynamic as sudo_dynamic
 
     def check_owner_or_sudo(func):
@@ -437,7 +436,6 @@ if userge.has_bot:
         return text, buttons
 
     def plugin_data(cur_pos: str, p_num: int = 0):
-
         pos_list = cur_pos.split("|")
         plg = userge.manager.plugins[pos_list[2]]
 

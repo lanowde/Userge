@@ -64,7 +64,6 @@ def input_checker(func: Callable[[Message], Awaitable[Any]]):
                 and replied.document.file_name.endswith((".txt", ".py"))
                 and replied.document.file_size <= 2097152
             ):
-
                 dl_loc = await replied.download()
                 async with aiofiles.open(dl_loc) as jv:
                     message.text += " " + await jv.read()
@@ -534,7 +533,12 @@ class Term:
     async def _worker(self) -> None:
         if self._cancelled or self._finished:
             return
-        await asyncio.wait([self._read_stdout(), self._read_stderr()])
+        await asyncio.wait(
+            [
+                asyncio.create_task(self._read_stdout()),
+                asyncio.create_task(self._read_stderr()),
+            ]
+        )
         await self._process.wait()
         self._finish()
 
